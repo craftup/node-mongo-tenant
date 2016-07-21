@@ -12,6 +12,9 @@
     "mongodb",
     "mongo"
   ],
+  "scripts": {
+    "test-and-cover": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha"
+  },
   "main": "index.js",
   "bugs": {
     "url": "https://github.com/craftup/node-mongo-tenant/issues"
