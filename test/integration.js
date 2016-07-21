@@ -79,5 +79,27 @@ describe('MongoTenant', function() {
         });
       });
     });
+
+    it('should bind Model.aggregate() to correct tenant context.', function(done) {
+      let TestModel = utils.createTestModel({num: Number});
+
+      TestModel.create({tenantId: 'tenant1', num: 10}, {tenantId: 'tenant1', num: 12}, {tenantId: 'tenant2', num: 20}, (err) => {
+        assert(!err, 'Expected creation of 3 test entities to work.');
+
+        TestModel.byTenant('tenant1').aggregate({
+          $group: {
+            _id: '$tenantId',
+            sum: {$sum: '$num'}
+          }},
+          (err, results) => {
+            assert(!err, 'Expected Model.aggregate() to work.');
+            assert.equal(results.length, 1, 'Expected model aggregation to return exactly one result.');
+            assert.equal(results[0].sum, 22, 'Expected the sum up `num` field for `tenant1` to be 22.');
+            assert.equal(results[0]._id, 'tenant1', 'Expected the tenant id of aggregated data ser to be `tenant1`.');
+
+            done();
+        });
+      });
+    });
   });
 });

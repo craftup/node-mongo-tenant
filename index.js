@@ -200,7 +200,7 @@ class MongoTenant {
           });
         }
 
-        return super.aggregate(operations);
+        return super.aggregate.apply(this, operations);
       }
 
       static remove(conditions, callback) {
