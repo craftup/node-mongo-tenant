@@ -19,5 +19,11 @@
   "repository": {
     "url": "https://github.com/craftup/node-mongo-tenant"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "istanbul": "^0.4.4",
+    "mocha": "^2.5.3",
+    "mongoose": "^4.5.5"
+  }
 }
