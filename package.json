@@ -1,0 +1,23 @@
+{
+  "name": "mongo-tenant",
+  "version": "0.0.0",
+  "description": "The mongo-tenant is a multi-tenancy plugin for mongoose.",
+  "author": "Alrik Zachert <alrik@craftup.cc>",
+  "keywords": [
+    "multi-tenancy",
+    "multitenancy",
+    "multi-tenant",
+    "multitenant",
+    "mongoose",
+    "mongodb",
+    "mongo"
+  ],
+  "main": "index.js",
+  "bugs": {
+    "url": "https://github.com/craftup/node-mongo-tenant/issues"
+  },
+  "repository": {
+    "url": "https://github.com/craftup/node-mongo-tenant"
+  },
+  "license": "MIT"
+}
