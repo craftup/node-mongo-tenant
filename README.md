@@ -1,6 +1,7 @@
 # Multi Tenancy Plugin for Mongoose
 
 [![Build Status](https://travis-ci.org/craftup/node-mongo-tenant.png?branch=master)](https://travis-ci.org/craftup/node-mongo-tenant)
+[![Coverage Status](https://coveralls.io/repos/github/craftup/node-mongo-tenant/badge.svg?branch=master)](https://coveralls.io/github/craftup/node-mongo-tenant?branch=master)
 
 ## Install
 
