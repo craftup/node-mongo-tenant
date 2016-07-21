@@ -3,5 +3,6 @@ node_js:
   - "6"
   - "5"
   - "4"
+services: mongodb
 script: "npm run-script test-and-cover"
 after_script: "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
