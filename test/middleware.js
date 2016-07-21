@@ -104,7 +104,7 @@ describe('MongoTenant', function() {
             done();
           });
         });
-      })
+      });
     });
 
     it('should bind tenant context to Model.findOne().', function(done) {
@@ -169,7 +169,26 @@ describe('MongoTenant', function() {
       });
     });
 
-    xit('should bind tenant context to Model.findOneAndUpdate().', function() {});
+    it('should bind tenant context to Model.findOneAndUpdate().', function(done) {
+      let TestModel = utils.createTestModel({someField: String});
+
+      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
+        assert(!err, 'Expected creation of 2 test entities to work.');
+
+        TestModel.byTenant('tenant1').findOneAndUpdate({}, {someField: 'some-value'}, {'new': true}, (err, entity) => {
+          assert(!err, 'Expected Model.findOneAndUpdate to work.');
+          assert.equal(entity.tenantId, 'tenant1', 'Expected the found entity to be bound to the correct tenant.');
+          assert.equal(entity.someField, 'some-value', 'Expected the updated entity to have someField set to some-value');
+
+          TestModel.byTenant('tenant3').findOneAndUpdate({}, {someField: 'some-value'}, (err, entity) => {
+            assert(!err, 'Expected Model.findOneAndUpdate to work.');
+            assert(!entity, 'Expected to not update any entity for tenant4.');
+
+            done();
+          });
+        });
+      });
+    });
 
     it('should bind tenant context to Model.save().', function(done) {
       let
@@ -223,6 +242,93 @@ describe('MongoTenant', function() {
       });
     });
 
-    xit('should bind tenant context to Model.update().', function() {});
+    it('should bind tenant context to Model.update().', function(done) {
+      let TestModel = utils.createTestModel({someField: String});
+
+      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
+        assert(!err, 'Expected creation of 2 test entities to work.');
+
+        TestModel.byTenant('tenant1').update({}, {someField: 'some-value'}, (err, mongoResult) => {
+          assert(!err, 'Expected model update to work.');
+          assert.equal(mongoResult.nModified, 1, 'Expected to update exactly 1 test entity.');
+
+          TestModel.byTenant('tenant1').find({}, (err, entities) => {
+            assert(!err, 'Expected entity search by Model.find to work.');
+
+            for (let entity of entities) {
+              assert.equal(entity.someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
+            }
+
+            done();
+          })
+        });
+      });
+    });
+
+    it('should avoid overwriting tenant context on Model.update().', function(done) {
+      let TestModel = utils.createTestModel({someField: String});
+
+      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
+        assert(!err, 'Expected creation of 2 test entities to work.');
+
+        TestModel.byTenant('tenant1').update({}, {tenantId: 'tenant2', someField: 'some-value'}, (err, mongoResult) => {
+          assert(!err, 'Expected model update to work.');
+          assert.equal(mongoResult.nModified, 1, 'Expected to update exactly 1 test entity.');
+
+          TestModel.byTenant('tenant1').find({}, (err, entities) => {
+            assert(!err, 'Expected entity search by Model.find to work.');
+            assert.equal(entities.length, 1, 'Expected to find exactly 1 entity.');
+            assert.equal(entities[0].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
+
+            done();
+          })
+        });
+      });
+    });
+
+    it('should preserve tenant context on Model.update() with truthy overwrite option.', function(done) {
+      let TestModel = utils.createTestModel({someField: String});
+
+      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
+        assert(!err, 'Expected creation of 2 test entities to work.');
+
+        TestModel.byTenant('tenant1').update({}, {tenantId: 'tenant2', someField: 'some-value'}, {overwrite: true}, (err, mongoResult) => {
+          assert(!err, 'Expected model update to work.');
+          assert.equal(mongoResult.nModified, 1, 'Expected to update exactly 1 test entity.');
+
+          TestModel.byTenant('tenant1').find({}, (err, entities) => {
+            assert(!err, 'Expected entity search by Model.find to work.');
+            assert.equal(entities.length, 1, 'Expected to find exactly 1 entity.');
+            assert.equal(entities[0].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
+
+            done();
+          })
+        });
+      });
+    });
+
+    it('should not affect Model.update() when not in tenant context.', function(done) {
+      let TestModel = utils.createTestModel({someField: String});
+
+      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2', someField: 'some-value'}, (err) => {
+        assert(!err, 'Expected creation of 2 test entities to work.');
+
+        TestModel.update({tenantId: 'tenant1'}, {tenantId: 'tenant2', someField: 'some-value'}, (err, mongoResult) => {
+          assert(!err, 'Expected model update to work.');
+          assert.equal(mongoResult.nModified, 1, 'Expected to update exactly 1 test entity.');
+
+          TestModel.find({}, (err, entities) => {
+            assert(!err, 'Expected entity search by Model.find to work.');
+            assert.equal(entities.length, 2, 'Expected to find exactly 2 entity.');
+            assert.equal(entities[0].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
+            assert.equal(entities[0].tenantId, 'tenant2', 'Expected updated tenantId to be `tenant2`.');
+            assert.equal(entities[1].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
+            assert.equal(entities[1].tenantId, 'tenant2', 'Expected updated tenantId to be `tenant2`.');
+
+            done();
+          })
+        });
+      });
+    });
   });
 });

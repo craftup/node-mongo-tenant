@@ -243,6 +243,7 @@ class MongoTenant {
 
   installMiddleWare() {
     let
+      me = this,
       tenantIdGetter = this.getTenantIdGetter(),
       tenantIdKey = this.getTenantIdKey();
 
@@ -280,7 +281,7 @@ class MongoTenant {
 
     this.schema.pre('findOneAndUpdate', function(next) {
       if (this.model.hasTenantContext) {
-        this._conditions[tenantIdKey] = this.model[tenantIdGetter]();
+        me._guardUpdateQuery(this);
       }
 
       next();
@@ -296,11 +297,37 @@ class MongoTenant {
 
     this.schema.pre('update', function(next) {
       if (this.model.hasTenantContext) {
-        this._conditions[tenantIdKey] = this.model[tenantIdGetter]();
+        me._guardUpdateQuery(this);
       }
 
       next();
     });
+  }
+
+  /**
+   * Avoid breaking tenant context from update operations.
+   *
+   * @param {mongoose.Query} query
+   * @private
+   */
+  _guardUpdateQuery(query) {
+    let
+      tenantIdGetter = this.getTenantIdGetter(),
+      tenantIdKey = this.getTenantIdKey(),
+      tenantId = query.model[tenantIdGetter](),
+      $set = query._update.$set;
+
+    query._conditions[tenantIdKey] = tenantId;
+
+    // avoid jumping tenant context when overwriting a model.
+    if (query.options.overwrite) {
+      query._update[tenantIdKey] = tenantId;
+    }
+
+    // avoid jumping tenant context from $set operations
+    if ($set && (tenantIdKey in $set) && $set[tenantIdKey] !== tenantId) {
+      $set[tenantIdKey] = tenantId;
+    }
   }
 }
 
