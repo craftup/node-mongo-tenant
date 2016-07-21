@@ -248,9 +248,8 @@ describe('MongoTenant', function() {
       TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
         assert(!err, 'Expected creation of 2 test entities to work.');
 
-        TestModel.byTenant('tenant1').update({}, {someField: 'some-value'}, (err, mongoResult) => {
+        TestModel.byTenant('tenant1').update({}, {someField: 'some-value'}, (err) => {
           assert(!err, 'Expected model update to work.');
-          assert.equal(mongoResult.nModified, 1, 'Expected to update exactly 1 test entity.');
 
           TestModel.byTenant('tenant1').find({}, (err, entities) => {
             assert(!err, 'Expected entity search by Model.find to work.');
@@ -271,9 +270,8 @@ describe('MongoTenant', function() {
       TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
         assert(!err, 'Expected creation of 2 test entities to work.');
 
-        TestModel.byTenant('tenant1').update({}, {tenantId: 'tenant2', someField: 'some-value'}, (err, mongoResult) => {
+        TestModel.byTenant('tenant1').update({}, {tenantId: 'tenant2', someField: 'some-value'}, (err) => {
           assert(!err, 'Expected model update to work.');
-          assert.equal(mongoResult.nModified, 1, 'Expected to update exactly 1 test entity.');
 
           TestModel.byTenant('tenant1').find({}, (err, entities) => {
             assert(!err, 'Expected entity search by Model.find to work.');
@@ -292,9 +290,8 @@ describe('MongoTenant', function() {
       TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
         assert(!err, 'Expected creation of 2 test entities to work.');
 
-        TestModel.byTenant('tenant1').update({}, {tenantId: 'tenant2', someField: 'some-value'}, {overwrite: true}, (err, mongoResult) => {
+        TestModel.byTenant('tenant1').update({}, {tenantId: 'tenant2', someField: 'some-value'}, {overwrite: true}, (err) => {
           assert(!err, 'Expected model update to work.');
-          assert.equal(mongoResult.nModified, 1, 'Expected to update exactly 1 test entity.');
 
           TestModel.byTenant('tenant1').find({}, (err, entities) => {
             assert(!err, 'Expected entity search by Model.find to work.');
@@ -313,9 +310,8 @@ describe('MongoTenant', function() {
       TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2', someField: 'some-value'}, (err) => {
         assert(!err, 'Expected creation of 2 test entities to work.');
 
-        TestModel.update({tenantId: 'tenant1'}, {tenantId: 'tenant2', someField: 'some-value'}, (err, mongoResult) => {
+        TestModel.update({tenantId: 'tenant1'}, {tenantId: 'tenant2', someField: 'some-value'}, (err) => {
           assert(!err, 'Expected model update to work.');
-          assert.equal(mongoResult.nModified, 1, 'Expected to update exactly 1 test entity.');
 
           TestModel.find({}, (err, entities) => {
             assert(!err, 'Expected entity search by Model.find to work.');
