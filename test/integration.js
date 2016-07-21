@@ -6,6 +6,8 @@ const
 
 describe('MongoTenant', function() {
   describe('#Integration', function() {
+    utils.clearDatabase();
+
     it('should inject default accessor method.', function() {
       let Model = utils.createTestModel({});
 
@@ -56,6 +58,26 @@ describe('MongoTenant', function() {
         Model.byTenant(1), Model.byTenant(1),
         'Expected multiple calls to tenant specific model accessor to deliver same model compilation.'
       );
+    });
+
+    it('should bind Model.remove() to correct tenant context.', function(done) {
+      let TestModel = utils.createTestModel({});
+
+      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
+        assert(!err, 'Expected creation of 2 test entities to work.');
+
+        TestModel.byTenant('tenant1').remove((err) => {
+          assert(!err, 'Expected Model.remove() to work.');
+
+          TestModel.find({}, (err, entities) => {
+            assert(!err, 'Expected Model.find() to work.');
+            assert.equal(entities.length, 1, 'Expected to find only one entity.');
+            assert.equal(entities[0].tenantId, 'tenant2', 'Expected tenant2 scope on entity.');
+
+            done();
+          })
+        });
+      });
     });
   });
 });
