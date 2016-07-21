@@ -1,5 +1,7 @@
 # Multi Tenancy Plugin for Mongoose
 
+[![Build Status](https://travis-ci.org/craftup/node-mongo-tenant.png?branch=master)](https://travis-ci.org/craftup/node-mongo-tenant)
+
 ## Install
 
 `$ npm install --save mongo-tenant`
