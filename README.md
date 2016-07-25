@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/craftup/node-mongo-tenant.png?branch=master)](https://travis-ci.org/craftup/node-mongo-tenant)
 [![Coverage Status](https://coveralls.io/repos/github/craftup/node-mongo-tenant/badge.svg?branch=master)](https://coveralls.io/github/craftup/node-mongo-tenant?branch=master)
+[![npm version](https://badge.fury.io/js/mongo-tenant.svg)](https://badge.fury.io/js/mongo-tenant)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/craftup/node-mongo-tenant/master/LICENSE)
 
 ## Prelude
