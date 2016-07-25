@@ -1,3 +1,10 @@
+/**
+ * mongo-tenant - Multi-tenancy for mongoose on document level.
+ *
+ * @copyright   Copyright (c) 2016, craftup
+ * @license     https://github.com/craftup/node-mongo-tenant/blob/master/LICENSE MIT
+ */
+
 'use strict';
 
 /**
