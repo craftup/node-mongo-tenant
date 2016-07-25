@@ -102,7 +102,7 @@ class MongoTenant {
         }
       };
 
-      this.schema.add(tenantField)
+      this.schema.add(tenantField);
     }
 
     return this;
@@ -243,7 +243,7 @@ class MongoTenant {
       [tenantIdGetter]() {
         return tenantId;
       }
-    };
+    }
 
     // inherit all static properties from the mongoose base model
     for (let staticProperty of Object.getOwnPropertyNames(BaseModel)) {
@@ -368,7 +368,7 @@ function mongoTenantPlugin(schema, options) {
   let mongoTenant = new MongoTenant(schema, options);
 
   mongoTenant.apply();
-};
+}
 
 mongoTenantPlugin.MongoTenant = MongoTenant;
 
