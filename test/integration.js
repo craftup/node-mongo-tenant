@@ -82,7 +82,7 @@ describe('MongoTenant', function() {
             assert.equal(entities[0].tenantId, 'tenant2', 'Expected tenant2 scope on entity.');
 
             done();
-          })
+          });
         });
       });
     });

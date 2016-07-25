@@ -33,7 +33,7 @@ describe('MongoTenant', function() {
             done();
           });
         });
-      })
+      });
     });
 
     it('should avoid tenant context jumping on Model.count().', function(done) {
@@ -54,7 +54,7 @@ describe('MongoTenant', function() {
             done();
           });
         });
-      })
+      });
     });
 
     it('should not affect Model.count() when not in tenant context.', function(done) {
@@ -90,7 +90,7 @@ describe('MongoTenant', function() {
             done();
           });
         });
-      })
+      });
     });
 
     it('should avoid tenant context jumping on Model.find().', function(done) {
@@ -266,7 +266,7 @@ describe('MongoTenant', function() {
             }
 
             done();
-          })
+          });
         });
       });
     });
@@ -286,7 +286,7 @@ describe('MongoTenant', function() {
             assert.equal(entities[0].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
 
             done();
-          })
+          });
         });
       });
     });
@@ -306,7 +306,7 @@ describe('MongoTenant', function() {
             assert.equal(entities[0].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
 
             done();
-          })
+          });
         });
       });
     });
@@ -329,7 +329,7 @@ describe('MongoTenant', function() {
             assert.equal(entities[1].tenantId, 'tenant2', 'Expected updated tenantId to be `tenant2`.');
 
             done();
-          })
+          });
         });
       });
     });
