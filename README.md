@@ -22,6 +22,10 @@ Last but not least the "MAGIC" can be disabled so that shipping of the
 same code in single- and multi-tenancy environment (on premis vs. cloud hosted)
 is a question of a single line of config.
 
+## Requirements
+
+Tested with mongoose from version >= 4.3.0.
+
 ## Install
 
 `$ npm install --save mongo-tenant`
