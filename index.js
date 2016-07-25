@@ -256,8 +256,6 @@ class MongoTenant {
       MongoTenantModel[staticProperty] = BaseModel[staticProperty];
     }
 
-    MongoTenantModel.__proto__ = BaseModel.__proto__;
-
     return MongoTenantModel;
   }
 
