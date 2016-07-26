@@ -4,7 +4,8 @@
   "description": "The mongo-tenant is a multi-tenancy plugin for mongoose.",
   "author": "Craftup Coding Company <moin@craftup.cc>",
   "contributors": [
-    "Alrik Zachert <alrik@craftup.cc>"
+    "Alrik Zachert <alrik@craftup.cc>",
+    "Henning Panke <henning@craftup.cc>"
   ],
   "keywords": [
     "multi-tenancy",
