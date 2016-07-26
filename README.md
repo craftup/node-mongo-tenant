@@ -148,6 +148,23 @@ let config = {
 SomeSchema.plugin(mongoTenant, config);
 ```
 
+### Running Tests
+
+Some tests rely on a running mongoDB and by default the tests are performed
+against 'mongodb://localhost/mongo-tenant-test'.
+The tests can also be run against a custom mongoDB by passing the
+custom connection string to **MONGO_URI** environment variable.
+
+```sh
+# perform jshint on sources and tests
+$ npm run hint
+
+# run the tests and gather coverage report
+$ npm run test-and-cover
+
+# run tests with custom mongoDB uri
+$ MONGO_URI='mongodb://user:password@xyz.mlab.com:23315/mongo-tenant-test' npm run test-and-cover
+```
 
 ### LICENSE
 
