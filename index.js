@@ -1,11 +1,20 @@
+/**
+ * mongo-tenant - Multi-tenancy for mongoose on document level.
+ *
+ * @copyright   Copyright (c) 2016, craftup
+ * @license     https://github.com/craftup/node-mongo-tenant/blob/master/LICENSE MIT
+ */
+
 'use strict';
 
 /**
- *
+ * MongoTenant is a class aimed for use in mongoose schema plugin scope.
+ * It adds support for multi-tenancy on document level (adding a tenant reference field and include this in unique indexes).
+ * Furthermore it provides an API for tenant bound models.
  */
 class MongoTenant {
   /**
-   *
+   * Create a new mongo tenant from a given schema.
    *
    * @param {mongoose.Schema} schema
    * @param {Object} [options] - A hash of configuration options.
@@ -93,7 +102,7 @@ class MongoTenant {
         }
       };
 
-      this.schema.add(tenantField)
+      this.schema.add(tenantField);
     }
 
     return this;
@@ -149,7 +158,10 @@ class MongoTenant {
   }
 
   /**
+   * Inject the user-space entry point for mongo tenant.
+   * This method adds a static Model method to retrieve tenant bound sub-classes.
    *
+   * @returns {MongoTenant}
    */
   injectApi() {
     let me = this;
@@ -175,6 +187,14 @@ class MongoTenant {
     return this;
   }
 
+  /**
+   * Create a model class that is bound the given tenant.
+   * So that all operations on this model prohibit leaving the tenant scope.
+   *
+   * @param BaseModel
+   * @param tenantId
+   * @returns {MongoTenantModel}
+   */
   createTenantAwareModel(BaseModel, tenantId) {
     let
       tenantIdGetter = this.getTenantIdGetter(),
@@ -223,7 +243,7 @@ class MongoTenant {
       [tenantIdGetter]() {
         return tenantId;
       }
-    };
+    }
 
     // inherit all static properties from the mongoose base model
     for (let staticProperty of Object.getOwnPropertyNames(BaseModel)) {
@@ -236,11 +256,14 @@ class MongoTenant {
       MongoTenantModel[staticProperty] = BaseModel[staticProperty];
     }
 
-    MongoTenantModel.__proto__ = BaseModel.__proto__;
-
     return MongoTenantModel;
   }
 
+  /**
+   * Install schema middleware to guard the tenant context of models.
+   *
+   * @returns {MongoTenant}
+   */
   installMiddleWare() {
     let
       me = this,
@@ -302,6 +325,8 @@ class MongoTenant {
 
       next();
     });
+
+    return this;
   }
 
   /**
@@ -341,7 +366,7 @@ function mongoTenantPlugin(schema, options) {
   let mongoTenant = new MongoTenant(schema, options);
 
   mongoTenant.apply();
-};
+}
 
 mongoTenantPlugin.MongoTenant = MongoTenant;
 
