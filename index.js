@@ -280,7 +280,7 @@ class MongoTenant {
 
     this.schema.pre('find', function(next) {
       if (this.model.hasTenantContext) {
-        this._conditions[tenantIdKey] = String(this.model[tenantIdGetter]());
+        this._conditions[tenantIdKey] = this.model[tenantIdGetter]();
       }
 
       next();
