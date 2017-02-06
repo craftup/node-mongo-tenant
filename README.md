@@ -27,6 +27,7 @@ is a question of a single line of config.
 ## Requirements
 
 Tested with mongoose from version >= 4.3.0.
+Mongo Tenant is currently incomapatible with mongoose 4.8 see Automattic/mongoose#4947.
 
 ## Install
 
