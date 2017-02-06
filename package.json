@@ -1,6 +1,6 @@
 {
   "name": "mongo-tenant",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "The mongo-tenant is a multi-tenancy plugin for mongoose.",
   "author": "Craftup Coding Company <moin@craftup.cc>",
   "contributors": [
@@ -33,10 +33,10 @@
     "coveralls": "^2.11.11",
     "istanbul": "^0.4.4",
     "jshint": "^2.9.0",
-    "mocha": "^2.5.3",
+    "mocha": "^3.2.0",
     "mocha-mongoose": "^1.2.0",
     "mongodb": "^2.2.4",
-    "mongoose": "^4.5.5"
+    "mongoose": "4.7.x"
   },
   "peerDependencies": {
     "mongoose": ">=4.3.0, <=4.7.x"
