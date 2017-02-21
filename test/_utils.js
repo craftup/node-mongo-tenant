@@ -16,6 +16,8 @@ const
 
 let testModelUnifier = 0;
 
+mongoose.Promise = Promise;
+
 function createTestModel(schemaDefinition, options) {
   let schema = new Schema(schemaDefinition);
 
