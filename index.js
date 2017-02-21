@@ -212,28 +212,48 @@ class MongoTenant {
       static aggregate() {
         let operations = Array.prototype.slice.call(arguments);
 
-        if (this.hasTenantContext) {
-          operations.unshift({
-            $match: {
-              [tenantIdKey]: this[tenantIdGetter]()
-            }
-          });
-        }
+        operations.unshift({
+          $match: {
+            [tenantIdKey]: this[tenantIdGetter]()
+          }
+        });
 
         return super.aggregate.apply(this, operations);
       }
 
       static remove(conditions, callback) {
-        if (this.hasTenantContext) {
-          if (arguments.length === 1 && typeof conditions === 'function') {
-            callback = conditions;
-            conditions = {};
-          }
-
-          conditions[tenantIdKey] = this[tenantIdGetter]();
+        if (arguments.length === 1 && typeof conditions === 'function') {
+          callback = conditions;
+          conditions = {};
         }
 
+        conditions[tenantIdKey] = this[tenantIdGetter]();
+
         return super.remove(conditions, callback);
+      }
+
+      static insertMany(docs, callback) {
+        let
+          me = this,
+          tenantId = this[tenantIdGetter]();
+
+        // Model.inserMany supports a single document as parameter
+        if (!Array.isArray(docs)) {
+          docs[tenantIdKey] = tenantId;
+        } else {
+          docs.forEach(function (doc, key) {
+            doc[tenantIdKey] = tenantId;
+          });
+        }
+
+        // ensure the returned docs are instanced of the bould multi tenant model
+        return super.insertMany(docs, (err, docs) => {
+          if (err) {
+            return callback && callback(err);
+          }
+
+          return callback && callback(null, docs.map(doc => new me(doc)));
+        });
       }
 
       get hasTenantContext() {
