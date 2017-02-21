@@ -249,6 +249,89 @@ describe('MongoTenant', function() {
       });
     });
 
+    it('should bind tenant context to documents created by Model.insertMany() method.', function(done) {
+      let
+        Model = utils.createTestModel({}).byTenant(1);
+
+      Model.insertMany([{}, {}], (err, docs) => {
+        assert(!err, 'Expected insertMany to work');
+
+        docs.forEach(function(obj) {
+          assert.ok(obj.hasTenantContext)
+          assert.equal(obj.tenantId, 1, 'Expected tenantId to be automatically set to `1`.');
+        });
+
+        done();
+      });
+    });
+
+    it('should bind tenant context to documents created by Model.insertMany() method.', function(done) {
+      let
+        Model = utils.createTestModel({}).byTenant(1);
+
+      Model.insertMany([{tenantId: 2}, {tenantId: -3}, {tenantId: '2'}], (err, docs) => {
+        assert(!err, 'Expected insertMany to work');
+
+        docs.forEach(function(obj) {
+          assert.ok(obj.hasTenantContext)
+          assert.equal(obj.tenantId, 1, 'Expected tenantId to be automatically set to `1`.');
+        });
+
+        done();
+      });
+    });
+
+    it('should bind tenant context to a single document created by Model.insertMany() method.', function(done) {
+      let
+        Model = utils.createTestModel({}).byTenant(1);
+
+      Model.insertMany({tenantId: 2}, (err, docs) => {
+        assert(!err, 'Expected insertMany to work');
+
+        docs.forEach(function(obj) {
+          assert.ok(obj.hasTenantContext)
+          assert.equal(obj.tenantId, 1, 'Expected tenantId to be automatically set to `1`.');
+        });
+
+        done();
+      });
+    });
+
+    it('Model.insertMany() method should fail properly.', function(done) {
+      let
+        Model = utils.createTestModel({
+          field: {
+            type: String,
+            unique: true
+          }
+        }).byTenant(1);
+
+      Model.insertMany([{field: 'A'}, {field: 'A'}], (err, docs) => {
+        assert(err, 'Expected insertMany to fail');
+        assert(!docs, 'Expected docs to be undefined on failed insertMany calls.')
+
+        done();
+      }).catch(err => {});
+    });
+
+    it('Model.insertMany() method should work without tenant context.', function(done) {
+      let
+        Model = utils.createTestModel({});
+
+      Model.insertMany([{tenantId: 1}, {tenantId: 2}], (err, docs) => {
+        assert(!err, 'Expected insertMany to work');
+        assert(docs.length === 2, 'Expected 2 docs to be inserted.');
+        assert.equal(docs[0].tenantId, 1, 'Expected the first document to have a tenantId property of `1`.')
+        assert.equal(docs[1].tenantId, 2, 'Expected the first document to have a tenantId property of `2`.')
+
+        docs.forEach(function(doc) {
+          assert(doc instanceof Model, 'Expected inserted documents to be proper instances of the model.');
+        });
+
+        done();
+      });
+    });
+
     it('should bind tenant context to Model.update().', function(done) {
       let TestModel = utils.createTestModel({someField: String});
 
