@@ -30,7 +30,7 @@ Tested with mongoose from version >= 4.3.0.
 
 ## Incompatibilities
 
-* Mongo Tenant is incomapatible with mongoose 4.8.1-4.8.2 see Automattic/mongoose#4947.
+* Mongo Tenant is incomapatible with mongoose 4.8.1-4.8.2 see [Automattic/mongoose#4947](https://github.com/Automattic/mongoose/issues/4947).
 
 ## Install
 
