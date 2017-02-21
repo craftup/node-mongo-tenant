@@ -299,14 +299,10 @@ describe('MongoTenant', function() {
 
     it('Model.insertMany() method should fail properly.', function(done) {
       let
-        Model = utils.createTestModel({
-          field: {
-            type: String,
-            unique: true
-          }
-        }).byTenant(1);
+        Model = utils.createTestModel({}).byTenant(1);
 
-      Model.insertMany([{field: 'A'}, {field: 'A'}], (err, docs) => {
+
+      Model.insertMany([{field: 'A'}, {_id: 'A'}], (err, docs) => {
         assert(err, 'Expected insertMany to fail');
         assert(!docs, 'Expected docs to be undefined on failed insertMany calls.');
 
