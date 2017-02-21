@@ -257,7 +257,7 @@ describe('MongoTenant', function() {
         assert(!err, 'Expected insertMany to work');
 
         docs.forEach(function(obj) {
-          assert.ok(obj.hasTenantContext)
+          assert.ok(obj.hasTenantContext);
           assert.equal(obj.tenantId, 1, 'Expected tenantId to be automatically set to `1`.');
         });
 
@@ -273,7 +273,7 @@ describe('MongoTenant', function() {
         assert(!err, 'Expected insertMany to work');
 
         docs.forEach(function(obj) {
-          assert.ok(obj.hasTenantContext)
+          assert.ok(obj.hasTenantContext);
           assert.equal(obj.tenantId, 1, 'Expected tenantId to be automatically set to `1`.');
         });
 
@@ -289,7 +289,7 @@ describe('MongoTenant', function() {
         assert(!err, 'Expected insertMany to work');
 
         docs.forEach(function(obj) {
-          assert.ok(obj.hasTenantContext)
+          assert.ok(obj.hasTenantContext);
           assert.equal(obj.tenantId, 1, 'Expected tenantId to be automatically set to `1`.');
         });
 
@@ -308,7 +308,7 @@ describe('MongoTenant', function() {
 
       Model.insertMany([{field: 'A'}, {field: 'A'}], (err, docs) => {
         assert(err, 'Expected insertMany to fail');
-        assert(!docs, 'Expected docs to be undefined on failed insertMany calls.')
+        assert(!docs, 'Expected docs to be undefined on failed insertMany calls.');
 
         done();
       }).catch(err => {});
@@ -321,8 +321,8 @@ describe('MongoTenant', function() {
       Model.insertMany([{tenantId: 1}, {tenantId: 2}], (err, docs) => {
         assert(!err, 'Expected insertMany to work');
         assert(docs.length === 2, 'Expected 2 docs to be inserted.');
-        assert.equal(docs[0].tenantId, 1, 'Expected the first document to have a tenantId property of `1`.')
-        assert.equal(docs[1].tenantId, 2, 'Expected the first document to have a tenantId property of `2`.')
+        assert.equal(docs[0].tenantId, 1, 'Expected the first document to have a tenantId property of `1`.');
+        assert.equal(docs[1].tenantId, 2, 'Expected the first document to have a tenantId property of `2`.');
 
         docs.forEach(function(doc) {
           assert(doc instanceof Model, 'Expected inserted documents to be proper instances of the model.');
