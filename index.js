@@ -209,6 +209,12 @@ class MongoTenant {
         return tenantId;
       }
 
+      /**
+       * @see Mongoose.Model.aggregate
+       * @param {...Object|Array} [operations] aggregation pipeline operator(s) or operator array
+       * @param {Function} [callback]
+       * @return {Mongoose.Aggregate|Promise}
+       */
       static aggregate() {
         let operations = Array.prototype.slice.call(arguments);
         let pipeline = operations;
