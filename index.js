@@ -211,8 +211,13 @@ class MongoTenant {
 
       static aggregate() {
         let operations = Array.prototype.slice.call(arguments);
+        let pipeline = operations;
 
-        operations.unshift({
+        if (Array.isArray(operations[0])) {
+          pipeline = operations[0];
+        }
+
+        pipeline.unshift({
           $match: {
             [tenantIdKey]: this[tenantIdGetter]()
           }
