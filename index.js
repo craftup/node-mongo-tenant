@@ -209,10 +209,21 @@ class MongoTenant {
         return tenantId;
       }
 
+      /**
+       * @see Mongoose.Model.aggregate
+       * @param {...Object|Array} [operations] aggregation pipeline operator(s) or operator array
+       * @param {Function} [callback]
+       * @return {Mongoose.Aggregate|Promise}
+       */
       static aggregate() {
         let operations = Array.prototype.slice.call(arguments);
+        let pipeline = operations;
 
-        operations.unshift({
+        if (Array.isArray(operations[0])) {
+          pipeline = operations[0];
+        }
+
+        pipeline.unshift({
           $match: {
             [tenantIdKey]: this[tenantIdGetter]()
           }
