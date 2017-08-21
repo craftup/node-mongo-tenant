@@ -38,7 +38,7 @@ function clearDatabase() {
   beforeEach(function(done) {
     if (mongoose.connection.db) return done();
 
-    mongoose.connect(MONGO_URI, done);
+    mongoose.connect(MONGO_URI, { useMongoClient: true }, done);
   });
 }
 
