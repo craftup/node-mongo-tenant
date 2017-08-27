@@ -91,5 +91,42 @@ describe('MongoTenant', function() {
       assert(indexesFound.field1, 'Expected index on field1 to exist.');
       assert(indexesFound.field2, 'Expected index on field2 to exist.');
     });
+  
+    it('should consider the sparse property in field level unique indexes.', function() {
+      let
+        Model, indexesFound = {};
+
+      Model = utils.createTestModel({
+        field1: {
+          type: String,
+          unique: true,
+          sparse: true
+        },
+        field2: {
+          type: Number,
+          index: true
+        }
+      });
+
+      for (let index of Model.schema.indexes()) {
+        if ('field1' in index[0]) {
+          indexesFound.field1 = true;
+          
+          assert('sparse' in index[1], 'Expected sparse property option on field1.');
+          assert('tenantId' in index[0], 'Expected unique index on field1 to be extended by tenantId field.');
+          assert(!('field2' in index[0]), 'Expected unique index on field1 not to contain field2.');
+        }
+
+        if ('field2' in index[0]) {
+          indexesFound.field2 = true;
+
+          assert(!('tenantId' in index[0]), 'Expected non unique index on field2 not to be extended by tenantId field.');
+          assert(!('field1' in index[0]), 'Expected non unique index on field2 not to contain field1.');
+        }
+      }
+
+      assert(indexesFound.field1, 'Expected index on field1 to exist.');
+      assert(indexesFound.field2, 'Expected index on field2 to exist.');
+    });
   });
 });
