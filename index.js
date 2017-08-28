@@ -142,14 +142,27 @@ class MongoTenant {
           // delete the old index
           path._index = null;
           delete path.options.unique;
+          
+          // prepare new options
+          let indexOptions = {
+            unique: true
+          };
+
+          // add sparse option if set in options
+          if (pathOptions.sparse) {
+            indexOptions.sparse = true;
+          }
+
+          // add partialFilterExpression option if set in options
+          if (pathOptions.partialFilterExpression) {
+            indexOptions.partialFilterExpression = pathOptions.partialFilterExpression;
+          }
 
           // create a new one that includes the tenant id field
           this.schema.index({
             [this.getTenantIdKey()]: 1,
             [key]: 1
-          }, {
-            unique: true
-          });
+          }, indexOptions);
         }
       });
     }
