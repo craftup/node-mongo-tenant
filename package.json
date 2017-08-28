@@ -36,7 +36,7 @@
     "mocha": "^3.5.0",
     "mocha-mongoose": "^1.2.0",
     "mongodb": "^2.2.31",
-    "mongoose": "^4.11.7"
+    "mongoose": "^4.11.9"
   },
   "peerDependencies": {
     "mongoose": ">=4.3.0 <=4.8.0 || >=4.8.3"
