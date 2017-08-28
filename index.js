@@ -153,6 +153,11 @@ class MongoTenant {
             indexOptions.sparse = true;
           }
 
+          // add partialFilterExpression option if set in options
+          if (pathOptions.partialFilterExpression) {
+            indexOptions.partialFilterExpression = pathOptions.partialFilterExpression;
+          }
+
           // create a new one that includes the tenant id field
           this.schema.index({
             [this.getTenantIdKey()]: 1,
