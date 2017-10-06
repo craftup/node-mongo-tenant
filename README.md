@@ -1,5 +1,6 @@
 # Multi Tenancy Plugin for Mongoose
 
+[![Subscribe to Release Notes](https://release-notes.com/badges/v1.svg)](https://release-notes.com/@craftup/node-mongo-tenant)
 [![Get Help on Gitter](https://img.shields.io/gitter/room/RealMQ/node-mongo-tenant.svg)](https://gitter.im/RealMQ/node-mongo-tenant)
 [![Build Status](https://travis-ci.org/craftup/node-mongo-tenant.png?branch=master)](https://travis-ci.org/craftup/node-mongo-tenant)
 [![Coverage Status](https://coveralls.io/repos/github/craftup/node-mongo-tenant/badge.svg?branch=master)](https://coveralls.io/github/craftup/node-mongo-tenant?branch=master)
