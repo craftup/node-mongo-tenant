@@ -4,7 +4,8 @@
 
 ## First of all
 
-Any contribution is welcome and feel free to suggest updates to this document as well :)
+Any contribution is welcome.
+This project is committed to the following [CODE OF CONDUCT](CODE_OF_CONDUCT.md).
 
 ## How can I contribute?
 
@@ -14,6 +15,7 @@ Any contribution is welcome and feel free to suggest updates to this document as
 * Submit a PR
 * Open an issue to give feedback
 * Write tests
+* Suggest updates to this document
 * ...
 
 ## Contribution Guidelines
