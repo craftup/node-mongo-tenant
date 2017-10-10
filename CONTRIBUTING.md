@@ -25,18 +25,11 @@ This project is committed to the following [CODE OF CONDUCT](CODE_OF_CONDUCT.md)
 * :+1: Code coverage should remain 100%
 * :+1: Changes should be stated in `release-notes.yml`
 
-**Creating a hotfix branch**
-```sh
-$ git checkout master
-$ git fetch origin
-$ git rebase origin/master
-$ git checkout -b hotfix/${ISSUE_NUMBER}
-```
+### Creating a feature branch
 
-* Bump the version in `package.json` to the next patch level (`"1.1.0" => "1.1.1"`).
-* State the new version's changes to `release-notes.yml`
+For new features, or fixes that introduce new elements to the public API (such as new public methods or properties),
+issue the pull request against the "develop" branch.
 
-**Creating a feature branch**
 ```sh
 $ git checkout develop
 $ git fetch origin
@@ -46,8 +39,17 @@ $ git checkout -b feature/${ISSUE_NUMBER}
 
 * Write the changes to `release-notes.yml` underneath `version: Unreleased` 
 
-### Which branch should you issue a pull request against?
+### Creating a hotfix branch
 
 For hotfixes against the stable release, issue the pull request against the "master" branch.
-For new features, or fixes that introduce new elements to the public API (such as new public methods or properties),
-issue the pull request against the "develop" branch.
+
+
+```sh
+$ git checkout master
+$ git fetch origin
+$ git rebase origin/master
+$ git checkout -b hotfix/${ISSUE_NUMBER}
+```
+
+* Bump the version in `package.json` to the next patch level (`"1.1.0" => "1.1.1"`).
+* State the new version's changes to `release-notes.yml`
