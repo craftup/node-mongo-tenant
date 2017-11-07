@@ -82,5 +82,25 @@ describe('MongoTenant', function() {
 
       assert.equal(mongoTenant.getTenantIdGetter(), 'get_tenant_id', 'Expected tenant id getter method name to be `get_tenant_id`.');
     });
+
+    it('should not require tenant id field by default.', function() {
+      let mongoTenant = new mongoTenantPlugin.MongoTenant();
+
+      assert.isFalse(
+        mongoTenant.isTenantIdRequired(),
+        'Expected tenant id field to allow null values.'
+      );
+    });
+
+    it('should be possible to set tenant id field required.', function() {
+      let mongoTenant = new mongoTenantPlugin.MongoTenant(null, {
+        requireTenantId: true,
+      });
+
+      assert.isTrue(
+        mongoTenant.isTenantIdRequired(),
+        'Expected tenant id field to be required (not nullable).'
+      );
+    });
   });
 });
