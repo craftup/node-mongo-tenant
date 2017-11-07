@@ -129,26 +129,32 @@ let config = {
    * Whether the mongo tenant plugin MAGIC is enabled. Default: true
    */
   enabled: false,
-  
+
   /**
    * The name of the tenant id field. Default: tenantId
    */
   tenantIdKey: 'customerId',
-  
+
   /**
    * The type of the tenant id field. Default: String
    */
   tenantIdType: Number,
-  
+
   /**
    * The name of the tenant id getter method. Default: getTenantId
    */
   tenantIdGetter: 'getCustomerId',
-  
+
   /**
    * The name of the tenant bound model getter method. Default: byTenant
    */
-   accessorMethod: 'byCustomer'
+  accessorMethod: 'byCustomer',
+
+  /**
+   * Enforce tenantId field to be set. Default: false
+   * NOTE: this option will become enabled by default in mongo-tenant@2.0
+   */
+  requireTenantId: true
 };
 
 SomeSchema.plugin(mongoTenant, config);
