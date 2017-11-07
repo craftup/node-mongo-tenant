@@ -31,14 +31,14 @@
   "license": "MIT",
   "devDependencies": {
     "@release-notes/cli": "^0.1.0",
-    "chai": "^4.1.1",
-    "coveralls": "^2.13.1",
+    "chai": "^4.1.2",
+    "coveralls": "^3.0.0",
     "istanbul": "^0.4.5",
     "jshint": "^2.9.5",
-    "mocha": "^3.5.0",
+    "mocha": "^4.0.1",
     "mocha-mongoose": "^1.2.0",
-    "mongodb": "^2.2.31",
-    "mongoose": "^4.11.9"
+    "mongodb": "^2.2.33",
+    "mongoose": "^4.13.0"
   },
   "peerDependencies": {
     "mongoose": ">=4.3.0 <=4.8.0 || >=4.8.3"
