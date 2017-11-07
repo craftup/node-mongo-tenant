@@ -10,6 +10,7 @@ releases:
 - version: Next
   added:
   - Introduce this release notes definition. (#23)
+  - Add config option `requireTenantId` in order to enforce tenant id to be set. (#28)
 - version: 1.2.0
   date: 2017-08-28
   added:
