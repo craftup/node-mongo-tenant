@@ -7,7 +7,8 @@ description: >
   multi-tenancy environment (on premis vs. cloud hosted) is a question of a single line of config.
 
 releases:
-- version: Next
+- version: 1.3.0
+  date: 2017-11-07
   added:
   - Introduce this release notes definition. (#23)
   - Add config option `requireTenantId` in order to enforce tenant id to be set. (#28)
