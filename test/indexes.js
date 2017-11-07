@@ -137,7 +137,7 @@ describe('MongoTenant', function() {
         field1: {
           type: String,
           unique: true,
-          partialFilterExpression: {field2: {$exist: true}}
+          partialFilterExpression: { field2: { $exists: true }}
         },
         field2: {
           type: Number,
@@ -148,7 +148,7 @@ describe('MongoTenant', function() {
       for (let index of Model.schema.indexes()) {
         if ('field1' in index[0]) {
           indexesFound.field1 = true;
-          
+
           assert('partialFilterExpression' in index[1], 'Expected partialFilterExpression property option on field1.');
           assert('tenantId' in index[0], 'Expected unique index on field1 to be extended by tenantId field.');
           assert(!('field2' in index[0]), 'Expected unique index on field1 not to contain field2.');

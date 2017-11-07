@@ -23,6 +23,7 @@ class MongoTenant {
    * @param {string|*} [options.tenantIdType] - The type of the tenant id field. Default: **String**.
    * @param {string} [options.tenantIdGetter] - The name of the tenant id getter method. Default: **getTenantId**.
    * @param {string} [options.accessorMethod] - The name of the tenant bound model getter method. Default: **byTenant**.
+   * @param {boolean} [options.requireTenantId] - Whether tenant id field should be required. Default: **false**.
    */
   constructor(schema, options) {
     this._modelCache = {};
@@ -89,6 +90,15 @@ class MongoTenant {
   }
 
   /**
+   * Check if tenant id is a required field.
+   *
+   * @return {boolean}
+   */
+  isTenantIdRequired() {
+    return this.options.requireTenantId === true;
+  }
+
+  /**
    * Inject tenantId field into schema definition.
    *
    * @returns {MongoTenant}
@@ -98,7 +108,8 @@ class MongoTenant {
       let tenantField = {
         [this.getTenantIdKey()]: {
           index: true,
-          type: this.getTenantIdType()
+          type: this.getTenantIdType(),
+          required: this.isTenantIdRequired(),
         }
       };
 

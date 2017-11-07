@@ -1,5 +1,6 @@
 # Multi Tenancy Plugin for Mongoose
 
+[![Subscribe to Release Notes](https://release-notes.com/badges/v1.svg)](https://release-notes.com/@craftup/node-mongo-tenant)
 [![Get Help on Gitter](https://img.shields.io/gitter/room/RealMQ/node-mongo-tenant.svg)](https://gitter.im/RealMQ/node-mongo-tenant)
 [![Build Status](https://travis-ci.org/craftup/node-mongo-tenant.png?branch=master)](https://travis-ci.org/craftup/node-mongo-tenant)
 [![Coverage Status](https://coveralls.io/repos/github/craftup/node-mongo-tenant/badge.svg?branch=master)](https://coveralls.io/github/craftup/node-mongo-tenant?branch=master)
@@ -128,26 +129,32 @@ let config = {
    * Whether the mongo tenant plugin MAGIC is enabled. Default: true
    */
   enabled: false,
-  
+
   /**
    * The name of the tenant id field. Default: tenantId
    */
   tenantIdKey: 'customerId',
-  
+
   /**
    * The type of the tenant id field. Default: String
    */
   tenantIdType: Number,
-  
+
   /**
    * The name of the tenant id getter method. Default: getTenantId
    */
   tenantIdGetter: 'getCustomerId',
-  
+
   /**
    * The name of the tenant bound model getter method. Default: byTenant
    */
-   accessorMethod: 'byCustomer'
+  accessorMethod: 'byCustomer',
+
+  /**
+   * Enforce tenantId field to be set. Default: false
+   * NOTE: this option will become enabled by default in mongo-tenant@2.0
+   */
+  requireTenantId: true
 };
 
 SomeSchema.plugin(mongoTenant, config);

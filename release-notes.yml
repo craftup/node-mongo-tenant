@@ -1,0 +1,60 @@
+title: Release Notes of node-mongo-tenant
+description: >
+  The mongo tenant is a highly configurable mongoose plugin solving multi-tenancy problems on
+  document level (for now...). It creates a tenant-reference field and takes care of unique indexes.
+  Also it provides access to tenant-bound model-classes, that prohibit the exploid of the given tenant scope.
+  Last but not least the "MAGIC" can be disabled so that shipping of the same code in single- and
+  multi-tenancy environment (on premis vs. cloud hosted) is a question of a single line of config.
+
+releases:
+- version: 1.3.0
+  date: 2017-11-07
+  added:
+  - Introduce this release notes definition. (#23)
+  - Add config option `requireTenantId` in order to enforce tenant id to be set. (#28)
+- version: 1.2.0
+  date: 2017-08-28
+  added:
+  - Add support for sparse option in unique fields. (#20)
+  - Add partialFilterExpression as option to indexes. (#21)
+- version: 1.1.0
+  date: 2017-08-21
+  added:
+  - Add support for aggregation pipeline argument passed as array. (#14)
+  improved:
+  - Use native promise to avoid the mongoose deprecation warning.
+  - Fix mongoose initialization deprecation warning by using mongoClient.
+- version: 1.0.4
+  date: 2017-02-06
+  improved:
+  - Improve compatibility to latest mongoose version.
+- version: 1.0.3
+  date: 2017-02-06
+  fixed:
+  - Upgrade testrunner mocha to version 3.
+  - Fix test incompatibility with mongoose@4.8.1 (#5)
+- version: 1.0.2
+  date: 2017-02-06
+  fixed:
+  - Fix incompatibility with mongoose@4.8.1 (#5)
+- version: 1.0.1
+  date: 2016-11-01
+  fixed:
+  - Fix find with tenantIds of type ObjectId. (#3)
+- version: 1.0.0
+  date: 2016-06-26
+  description: First Stable version
+  added:
+  - Introduce multi tenancy logic.
+  - Test against real mongodb instance.
+  - Display build badges in readme.
+  - Setup coveralls in order to keep an eye on test coverage.
+  - Improve code documentation.
+  - Ensure coding standards via jshint.
+- version: 0.0.1
+  date: 2016-06-21
+  description: Project setup & initial release
+  added:
+  - Base mongoose plugin setup & tests.
+  - Introduce MIT license.
+  - Setup travis ci to run automated tests on every commit.
