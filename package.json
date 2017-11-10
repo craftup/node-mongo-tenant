@@ -20,6 +20,7 @@
     "hint": "jshint .",
     "test": "mocha --exit",
     "test-and-cover": "nyc --reporter=html --reporter=text npm run test",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "validate-release-notes": "release-notes validate"
   },
   "main": "index.js",
