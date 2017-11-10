@@ -10,9 +10,11 @@ releases:
 - version: 1.3.1
   date: 2017-11-10
   improved:
-  - Generate coverage reports with `nyc` instead of `istanbul`.
+  - title: Generate coverage reports with `nyc` instead of `istanbul`.
+    tags: ['Tests']
   fixed:
-  - Fix test system to exit after the last test.
+  - title: Fix test system to exit after the last test.
+    tags: ['Tests']
 - version: 1.3.0
   date: 2017-11-07
   added:
