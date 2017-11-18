@@ -225,6 +225,32 @@ describe('MongoTenant', function() {
       });
     });
 
+    it('should bind custom tenant key context to static Model.create() method.', function(done) {
+      let Model = utils.createTestModel({}, {
+        mongoTenant: { tenantIdKey: 'customTenantId' }
+      }).byTenant(1);
+
+      Model.create({}, (err, obj) => {
+        assert(!err, 'Expected model persistance to work');
+        assert.equal(obj.customTenantId, 1, 'Expected customTenantId to be automatically set to `1`.');
+
+        done();
+      });
+    });
+
+    it('should avoid custom tenant key jumping on static Model.create() method.', function(done) {
+      let Model = utils.createTestModel({}, {
+        mongoTenant: { tenantIdKey: 'customTenantId' }
+      }).byTenant(1);
+
+      Model.create({ customTenantId: 2 }, (err, obj) => {
+        assert(!err, 'Expected model persistance to work');
+        assert.equal(obj.customTenantId, 1, 'Expected customTenantId to be automatically set to `1`.');
+
+        done();
+      });
+    });
+
     it('should bind tenant context to static Model.create() method.', function(done) {
       let
         Model = utils.createTestModel({}).byTenant(1);
