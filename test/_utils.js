@@ -38,7 +38,11 @@ function clearDatabase() {
   beforeEach(function(done) {
     if (mongoose.connection.db) return done();
 
-    mongoose.connect(MONGO_URI, { useMongoClient: true }, done);
+    if (mongoose.version[0] === '4') {
+      mongoose.connect(MONGO_URI, { useMongoClient: true }, done);
+    } else {
+      mongoose.connect(MONGO_URI, done);
+    }
   });
 }
 
