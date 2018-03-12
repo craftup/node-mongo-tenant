@@ -153,7 +153,7 @@ class MongoTenant {
           // delete the old index
           path._index = null;
           delete path.options.unique;
-          
+
           // prepare new options
           let indexOptions = {
             unique: true
@@ -245,6 +245,9 @@ class MongoTenant {
 
         if (Array.isArray(operations[0])) {
           pipeline = operations[0];
+        } else if (arguments.length === 1 || typeof arguments[1] === 'function') {
+          // mongoose 5.x compatibility
+          pipeline = operations[0] = [operations[0]];
         }
 
         pipeline.unshift({
