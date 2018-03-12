@@ -327,13 +327,17 @@ describe('MongoTenant', function() {
       let
         Model = utils.createTestModel({}).byTenant(1);
 
-
-      Model.insertMany([{field: 'A'}, {_id: 'A'}], (err, docs) => {
+      const promise = Model.insertMany([{field: 'A'}, {_id: 'A'}], (err, docs) => {
         assert(err, 'Expected insertMany to fail');
         assert(!docs, 'Expected docs to be undefined on failed insertMany calls.');
 
         done();
-      }).catch(err => {});
+      });
+
+      // compatibility for mongoose 4 & 5
+      if (promise && promise.catch) {
+        promise.catch(() => {});
+      }
     });
 
     it('Model.insertMany() method should work without tenant context.', function(done) {
@@ -385,7 +389,7 @@ describe('MongoTenant', function() {
         TestModel.byTenant('tenant1').update({}, {tenantId: 'tenant2', someField: 'some-value'}, (err) => {
           assert(!err, 'Expected model update to work.');
 
-          TestModel.byTenant('tenant1').find({}, (err, entities) => {
+          TestModel.byTenant('tenant1').find({}, (err, entities) => { 
             assert(!err, 'Expected entity search by Model.find to work.');
             assert.equal(entities.length, 1, 'Expected to find exactly 1 entity.');
             assert.equal(entities[0].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
