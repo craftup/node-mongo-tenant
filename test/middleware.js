@@ -9,6 +9,7 @@
 
 const
   assert = require('chai').assert,
+  Schema = require('mongoose').Schema,
   utils = require('./_utils');
 
 describe('MongoTenant', function() {
@@ -111,6 +112,30 @@ describe('MongoTenant', function() {
             done();
           });
         });
+      });
+    });
+
+    it('should pass down tenant context on Model.find().populate()', function (done) {
+      const ChildModel = utils.createTestModel({});
+      const ParentModel = utils.createTestModel({
+        childs: [{ type: Schema.Types.ObjectId, ref: ChildModel.modelName }]
+      });
+
+      ChildModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err, child1, child2) => {
+        assert(!err, 'Expected creation of 2 child test entities to work.');
+
+        ParentModel.create({tenantId: 'tenant1', childs: [child1._id, child2._id]}, (err) => {
+          assert(!err, 'Expected creation of 1 parent test entity to work.');
+
+          ParentModel.byTenant('tenant1').find().populate('childs').exec((err, matches) => {
+            assert(!err, 'Expected entity search by `Model.find` to work.');
+            assert.equal(matches.length, 1, 'Expected to find exactly 1 parent entity.');
+
+            const parent = matches[0];
+            assert.equal(parent.childs.length, 1, 'Expected exactly 1 child in found parent entity.');
+            assert.equal(parent.childs[0].tenantId, 'tenantId', 'Expected child of found parent entity to be of same tenant.');
+          });
+        })
       });
     });
 
