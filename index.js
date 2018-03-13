@@ -403,7 +403,7 @@ class MongoTenant {
     query._conditions[tenantIdKey] = tenantId;
 
     // avoid jumping tenant context when overwriting a model.
-    if (query.options.overwrite) {
+    if ((tenantIdKey in query._update) || query.options.overwrite) {
       query._update[tenantIdKey] = tenantId;
     }
 
