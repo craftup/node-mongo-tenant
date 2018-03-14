@@ -21,13 +21,19 @@ mongoose.Promise = Promise;
 function createTestModel(schemaDefinition, options) {
   let schema = new Schema(schemaDefinition);
 
-  options = options || {};
+  options = Object.assign({
+    applyOnSchema: void 0,
+    mongoTenant: void 0,
+    withPlugin: true
+  }, options);
 
   if (typeof options.applyOnSchema === 'function') {
     options.applyOnSchema(schema);
   }
 
-  schema.plugin(mongoTenantPlugin, options.mongoTenant);
+  if (options.withPlugin) {
+    schema.plugin(mongoTenantPlugin, options.mongoTenant);
+  }
 
   return mongoose.model(`mongoTenantTestModel${++testModelUnifier}`, schema);
 }
