@@ -133,7 +133,9 @@ describe('MongoTenant', function() {
 
             const parent = matches[0];
             assert.equal(parent.childs.length, 1, 'Expected exactly 1 child in found parent entity.');
-            assert.equal(parent.childs[0].tenantId, 'tenantId', 'Expected child of found parent entity to be of same tenant.');
+            assert.equal(parent.childs[0].tenantId, 'tenant1', 'Expected child of found parent entity to be of same tenant.');
+
+            done();
           });
         })
       });

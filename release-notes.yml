@@ -7,6 +7,12 @@ description: >
   multi-tenancy environment (on premis vs. cloud hosted) is a question of a single line of config.
 
 releases:
+- version: Next
+  fixed:
+  - Missing tenant context in populated subdocuments ([#16](https://github.com/craftup/node-mongo-tenant/issues/16)).
+  changed:
+  - Models with tenant context (`Model.byTenant(...)`) will have a modified db connection object
+    returning Models bound to same context.
 - version: 1.3.2
   date: 2017-11-10
   fixed:

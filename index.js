@@ -99,6 +99,22 @@ class MongoTenant {
   }
 
   /**
+   * Checks if instance is compatible to other plugin instance
+   *
+   * For population of referenced models it's necessary to detect if the tenant
+   * plugin installed installed in these models is compatible to the plugin of
+   * the host model. If they are compatible they are one the same "level".
+   *
+   * @param {MongoTenant} plugin
+   */
+  isCompatibleTo(plugin) {
+    if (!plugin instanceof MongoTenant) {
+      return false;
+    }
+    return this.getTenantIdKey() === plugin.getTenantIdKey();
+  }
+
+  /**
    * Inject tenantId field into schema definition.
    *
    * @returns {MongoTenant}
@@ -190,23 +206,30 @@ class MongoTenant {
   injectApi() {
     let me = this;
 
-    this.schema.statics[this.getAccessorMethod()] = function(tenantId) {
-      if (!me.isEnabled()) {
-        return this.model(this.modelName);
-      }
+    Object.assign(this.schema.statics, {
+      [this.getAccessorMethod()]: function (tenantId) {
+        if (!me.isEnabled()) {
+          return this.model(this.modelName);
+        }
 
-      let modelCache = me._modelCache[this.modelName] || (me._modelCache[this.modelName] = {});
+        let modelCache = me._modelCache[this.modelName] || (me._modelCache[this.modelName] = {});
 
-      // lookup tenant-bound model in cache
-      if (!modelCache[tenantId]) {
-        let Model = this.model(this.modelName);
+        // lookup tenant-bound model in cache
+        if (!modelCache[tenantId]) {
+          let Model = this.model(this.modelName);
 
-        // Cache the tenant bound model class.
-        modelCache[tenantId] = me.createTenantAwareModel(Model, tenantId);
-      }
+          // Cache the tenant bound model class.
+          const boundDb = me.createBoundDb(Model.db, tenantId);
+          modelCache[tenantId] = me.createTenantAwareModel(Model, tenantId, boundDb);
+        }
 
-      return modelCache[tenantId];
-    };
+        return modelCache[tenantId];
+      },
+
+      getMongoTenantPluginInstance: function () {
+        return me;
+      },
+    });
 
     return this;
   }
@@ -217,9 +240,10 @@ class MongoTenant {
    *
    * @param BaseModel
    * @param tenantId
+   * @param boundDb
    * @returns {MongoTenantModel}
    */
-  createTenantAwareModel(BaseModel, tenantId) {
+  createTenantAwareModel(BaseModel, tenantId, boundDb) {
     let
       tenantIdGetter = this.getTenantIdGetter(),
       tenantIdKey = this.getTenantIdKey();
@@ -291,6 +315,10 @@ class MongoTenant {
         });
       }
 
+      static get db() {
+        return boundDb;
+      }
+
       get hasTenantContext() {
         return true;
       }
@@ -312,6 +340,35 @@ class MongoTenant {
     }
 
     return MongoTenantModel;
+  }
+
+  /**
+   * Create db connection bound to a specific tenant
+   *
+   * @param {Connection} unboundDb
+   * @param {*} tenantId
+   * @returns {Connection}
+   */
+  createBoundDb(unboundDb, tenantId) {
+    const me = this;
+    const boundDb = Object.create(unboundDb);
+    boundDb.model = (name) => {
+      const unboundModel = unboundDb.model(name);
+      const otherPluginPresent = unboundModel.schema.plugins.some(
+        plugin => (plugin.fn === mongoTenantPlugin)
+      );
+      if (!otherPluginPresent) {
+        return unboundModel;
+      }
+
+      const otherPlugin = unboundModel.getMongoTenantPluginInstance();
+      if (!otherPlugin.isCompatibleTo(me)) {
+        return unboundModel;
+      }
+
+      return unboundModel[otherPlugin.getAccessorMethod()](tenantId);
+    };
+    return boundDb;
   }
 
   /**
