@@ -108,10 +108,10 @@ class MongoTenant {
    * @param {MongoTenant} plugin
    */
   isCompatibleTo(plugin) {
-    if (!plugin instanceof MongoTenant) {
-      return false;
-    }
-    return this.getTenantIdKey() === plugin.getTenantIdKey();
+    return (
+      plugin instanceof MongoTenant &&
+      this.getTenantIdKey() === plugin.getTenantIdKey()
+    );
   }
 
   /**

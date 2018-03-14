@@ -118,7 +118,7 @@ describe('MongoTenant', function() {
     it('should pass down tenant context on Model.find().populate()', function (done) {
       const ChildModel = utils.createTestModel({});
       const ParentModel = utils.createTestModel({
-        childs: [{ type: Schema.Types.ObjectId, ref: ChildModel.modelName }]
+        childs: [{ type: Schema.Types.ObjectId, ref: ChildModel.modelName }],
       });
 
       ChildModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err, child1, child2) => {
@@ -137,7 +137,7 @@ describe('MongoTenant', function() {
 
             done();
           });
-        })
+        });
       });
     });
 
