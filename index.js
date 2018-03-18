@@ -109,7 +109,7 @@ class MongoTenant {
    */
   isCompatibleTo(plugin) {
     return (
-      plugin instanceof MongoTenant &&
+      typeof plugin.getTenantIdKey === 'function' &&
       this.getTenantIdKey() === plugin.getTenantIdKey()
     );
   }
@@ -354,10 +354,7 @@ class MongoTenant {
     const boundDb = Object.create(unboundDb);
     boundDb.model = (name) => {
       const unboundModel = unboundDb.model(name);
-      const otherPluginPresent = unboundModel.schema.plugins.some(
-        plugin => (plugin.fn === mongoTenantPlugin)
-      );
-      if (!otherPluginPresent) {
+      if (typeof unboundModel.getMongoTenantPluginInstance !== 'function') {
         return unboundModel;
       }
 
