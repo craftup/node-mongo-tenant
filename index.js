@@ -219,8 +219,7 @@ class MongoTenant {
           let Model = this.model(this.modelName);
 
           // Cache the tenant bound model class.
-          const boundDb = me.createBoundDb(Model.db, tenantId);
-          modelCache[tenantId] = me.createTenantAwareModel(Model, tenantId, boundDb);
+          modelCache[tenantId] = me.createTenantAwareModel(Model, tenantId);
         }
 
         return modelCache[tenantId];
@@ -240,13 +239,14 @@ class MongoTenant {
    *
    * @param BaseModel
    * @param tenantId
-   * @param boundDb
    * @returns {MongoTenantModel}
    */
-  createTenantAwareModel(BaseModel, tenantId, boundDb) {
+  createTenantAwareModel(BaseModel, tenantId) {
     let
       tenantIdGetter = this.getTenantIdGetter(),
       tenantIdKey = this.getTenantIdKey();
+
+    const db = this.createTenantAwareDb(BaseModel.db, tenantId);
 
     class MongoTenantModel extends BaseModel {
       static get hasTenantContext() {
@@ -316,7 +316,7 @@ class MongoTenant {
       }
 
       static get db() {
-        return boundDb;
+        return db;
       }
 
       get hasTenantContext() {
@@ -345,27 +345,27 @@ class MongoTenant {
   /**
    * Create db connection bound to a specific tenant
    *
-   * @param {Connection} unboundDb
+   * @param {Connection} unawareDb
    * @param {*} tenantId
    * @returns {Connection}
    */
-  createBoundDb(unboundDb, tenantId) {
+  createTenantAwareDb(unawareDb, tenantId) {
     const me = this;
-    const boundDb = Object.create(unboundDb);
-    boundDb.model = (name) => {
-      const unboundModel = unboundDb.model(name);
-      if (typeof unboundModel.getMongoTenantPluginInstance !== 'function') {
-        return unboundModel;
+    const awareDb = Object.create(unawareDb);
+    awareDb.model = (name) => {
+      const unawareModel = unawareDb.model(name);
+      if (typeof unawareModel.getMongoTenantPluginInstance !== 'function') {
+        return unawareModel;
       }
 
-      const otherPlugin = unboundModel.getMongoTenantPluginInstance();
+      const otherPlugin = unawareModel.getMongoTenantPluginInstance();
       if (!otherPlugin.isCompatibleTo(me)) {
-        return unboundModel;
+        return unawareModel;
       }
 
-      return unboundModel[otherPlugin.getAccessorMethod()](tenantId);
+      return unawareModel[otherPlugin.getAccessorMethod()](tenantId);
     };
-    return boundDb;
+    return awareDb;
   }
 
   /**
