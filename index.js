@@ -102,8 +102,8 @@ class MongoTenant {
    * Checks if instance is compatible to other plugin instance
    *
    * For population of referenced models it's necessary to detect if the tenant
-   * plugin installed installed in these models is compatible to the plugin of
-   * the host model. If they are compatible they are one the same "level".
+   * plugin installed in these models is compatible to the plugin of the host
+   * model. If they are compatible they are one the same "level".
    *
    * @param {MongoTenant} plugin
    */
