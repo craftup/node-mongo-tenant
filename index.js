@@ -109,6 +109,8 @@ class MongoTenant {
    */
   isCompatibleTo(plugin) {
     return (
+      plugin &&
+      typeof plugin.getAccessorMethod === 'function' &&
       typeof plugin.getTenantIdKey === 'function' &&
       this.getTenantIdKey() === plugin.getTenantIdKey()
     );
@@ -225,9 +227,9 @@ class MongoTenant {
         return modelCache[tenantId];
       },
 
-      getMongoTenantPluginInstance: function () {
+      get mongoTenant() {
         return me;
-      },
+      }
     });
 
     return this;
@@ -354,12 +356,9 @@ class MongoTenant {
     const awareDb = Object.create(unawareDb);
     awareDb.model = (name) => {
       const unawareModel = unawareDb.model(name);
-      if (typeof unawareModel.getMongoTenantPluginInstance !== 'function') {
-        return unawareModel;
-      }
+      const otherPlugin = unawareModel.mongoTenant;
 
-      const otherPlugin = unawareModel.getMongoTenantPluginInstance();
-      if (!otherPlugin.isCompatibleTo(me)) {
+      if (!me.isCompatibleTo(otherPlugin)) {
         return unawareModel;
       }
 
