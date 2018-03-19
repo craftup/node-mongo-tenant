@@ -386,7 +386,11 @@ describe('MongoTenant', function() {
       TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
         assert(!err, 'Expected creation of 2 test entities to work.');
 
-        TestModel.byTenant('tenant1').update({}, {tenantId: 'tenant2', someField: 'some-value'}, (err) => {
+        TestModel.byTenant('tenant1').update({}, {
+          tenantId: 'tenant2',
+          someField: 'some-value',
+          $set: { tenantId: "tenant2" }
+        }, (err) => {
           assert(!err, 'Expected model update to work.');
 
           TestModel.byTenant('tenant1').find({}, (err, entities) => { 
