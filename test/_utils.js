@@ -7,12 +7,11 @@
 
 'use strict';
 
-const
-  MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost/mongo-tenant-test',
-  mongoose = require('mongoose'),
-  mochaMongoose = require('mocha-mongoose'),
-  mongoTenantPlugin = require('../index.js'),
-  Schema = mongoose.Schema;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost/mongo-tenant-test';
+const mongoose = require('mongoose');
+const mochaMongoose = require('mocha-mongoose');
+const mongoTenantPlugin = require('../index.js');
+const Schema = mongoose.Schema;
 
 let testModelUnifier = 0;
 
@@ -38,7 +37,11 @@ function clearDatabase() {
   beforeEach(function(done) {
     if (mongoose.connection.db) return done();
 
-    mongoose.connect(MONGO_URI, { useMongoClient: true }, done);
+    if (mongoose.version[0] === '4') {
+      mongoose.connect(MONGO_URI, { useMongoClient: true }, done);
+    } else {
+      mongoose.connect(MONGO_URI, done);
+    }
   });
 }
 

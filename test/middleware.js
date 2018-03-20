@@ -225,6 +225,32 @@ describe('MongoTenant', function() {
       });
     });
 
+    it('should bind custom tenant key context to static Model.create() method.', function(done) {
+      let Model = utils.createTestModel({}, {
+        mongoTenant: { tenantIdKey: 'customTenantId' }
+      }).byTenant(1);
+
+      Model.create({}, (err, obj) => {
+        assert(!err, 'Expected model persistance to work');
+        assert.equal(obj.customTenantId, 1, 'Expected customTenantId to be automatically set to `1`.');
+
+        done();
+      });
+    });
+
+    it('should avoid custom tenant key jumping on static Model.create() method.', function(done) {
+      let Model = utils.createTestModel({}, {
+        mongoTenant: { tenantIdKey: 'customTenantId' }
+      }).byTenant(1);
+
+      Model.create({ customTenantId: 2 }, (err, obj) => {
+        assert(!err, 'Expected model persistance to work');
+        assert.equal(obj.customTenantId, 1, 'Expected customTenantId to be automatically set to `1`.');
+
+        done();
+      });
+    });
+
     it('should bind tenant context to static Model.create() method.', function(done) {
       let
         Model = utils.createTestModel({}).byTenant(1);
@@ -301,13 +327,17 @@ describe('MongoTenant', function() {
       let
         Model = utils.createTestModel({}).byTenant(1);
 
-
-      Model.insertMany([{field: 'A'}, {_id: 'A'}], (err, docs) => {
+      const promise = Model.insertMany([{field: 'A'}, {_id: 'A'}], (err, docs) => {
         assert(err, 'Expected insertMany to fail');
         assert(!docs, 'Expected docs to be undefined on failed insertMany calls.');
 
         done();
-      }).catch(err => {});
+      });
+
+      // compatibility for mongoose 4 & 5
+      if (promise && promise.catch) {
+        promise.catch(() => {});
+      }
     });
 
     it('Model.insertMany() method should work without tenant context.', function(done) {
@@ -356,10 +386,14 @@ describe('MongoTenant', function() {
       TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
         assert(!err, 'Expected creation of 2 test entities to work.');
 
-        TestModel.byTenant('tenant1').update({}, {tenantId: 'tenant2', someField: 'some-value'}, (err) => {
+        TestModel.byTenant('tenant1').update({}, {
+          tenantId: 'tenant2',
+          someField: 'some-value',
+          $set: { tenantId: "tenant2" }
+        }, (err) => {
           assert(!err, 'Expected model update to work.');
 
-          TestModel.byTenant('tenant1').find({}, (err, entities) => {
+          TestModel.byTenant('tenant1').find({}, (err, entities) => { 
             assert(!err, 'Expected entity search by Model.find to work.');
             assert.equal(entities.length, 1, 'Expected to find exactly 1 entity.');
             assert.equal(entities[0].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
