@@ -12,7 +12,7 @@ git:
   depth: 3
 install:
   - yarn
-  - yarn add mongoose@^$MONGOOSE_VERSION
+  - yarn add --dev mongoose@^$MONGOOSE_VERSION
 script:
   - yarn hint
   - yarn test-and-cover
