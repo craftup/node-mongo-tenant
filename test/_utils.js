@@ -7,12 +7,11 @@
 
 'use strict';
 
-const
-  MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost/mongo-tenant-test',
-  mongoose = require('mongoose'),
-  mochaMongoose = require('mocha-mongoose'),
-  mongoTenantPlugin = require('../index.js'),
-  Schema = mongoose.Schema;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost/mongo-tenant-test';
+const mongoose = require('mongoose');
+const mochaMongoose = require('mocha-mongoose');
+const mongoTenantPlugin = require('../index.js');
+const Schema = mongoose.Schema;
 
 let testModelUnifier = 0;
 
