@@ -10,6 +10,8 @@ services: mongodb
 cache: yarn
 git:
   depth: 3
+before_script:
+  - sleep 15
 install:
   - yarn
   - yarn add --dev mongoose@^$MONGOOSE_VERSION
