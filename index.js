@@ -311,7 +311,8 @@ class MongoTenant {
         continue;
       }
 
-      MongoTenantModel[staticProperty] = BaseModel[staticProperty];
+      let descriptor = Object.getOwnPropertyDescriptor(BaseModel, staticProperty)
+      Object.defineProperty(MongoTenantModel, staticProperty, descriptor)
     }
 
     return MongoTenantModel;
