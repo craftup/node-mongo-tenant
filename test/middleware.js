@@ -15,6 +15,23 @@ describe('MongoTenant', function() {
   describe('#Middleware', function() {
     utils.clearDatabase();
 
+    it('should inherit properties from Model when using discriminator', function (done) {
+      let 
+        TestModel = utils.createTestModel({ kind: String });
+
+      let 
+        DiscriminatorTest = utils.createTestModel({ inherit: Boolean });
+
+      DiscriminatorTest = TestModel.discriminator('DiscriminatorTest', DiscriminatorTest.schema);
+      
+      DiscriminatorTest.byTenant(1).create({ inherit: true, kind: 'test' }, (err, doc) => {
+        assert.equal(doc.__t, 'DiscriminatorTest');
+        assert(doc.inherit);
+        assert.equal(doc.kind, 'test');
+        done();
+      });
+    });
+
     it('should bind tenant context to Model.count().', function(done) {
       let
         TestModel = utils.createTestModel({});
