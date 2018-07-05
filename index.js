@@ -315,6 +315,15 @@ class MongoTenant {
       Object.defineProperty(MongoTenantModel, staticProperty, descriptor);
     }
 
+    // create tenant models for discriminators if they exist
+    if(BaseModel.discriminators) {
+      MongoTenantModel.discriminators = {};
+
+      for (let key in BaseModel.discriminators) {
+        MongoTenantModel.discriminators[key] = this.createTenantAwareModel(BaseModel.discriminators[key], tenantId);
+      }
+    }
+
     return MongoTenantModel;
   }
 
