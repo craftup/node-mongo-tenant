@@ -18,9 +18,9 @@ let testModelUnifier = 0;
 mongoose.Promise = Promise;
 
 function createTestModel(schemaDefinition, options) {
-  let schema = new Schema(schemaDefinition);
-
   options = options || {};
+  
+  let schema = new Schema(schemaDefinition, options.schemaOptions);
 
   if (typeof options.applyOnSchema === 'function') {
     options.applyOnSchema(schema);

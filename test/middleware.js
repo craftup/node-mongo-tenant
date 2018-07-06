@@ -9,11 +9,46 @@
 
 const
   assert = require('chai').assert,
-  utils = require('./_utils');
+  utils = require('./_utils'),
+  Schema = require('mongoose').Schema;
 
 describe('MongoTenant', function() {
   describe('#Middleware', function() {
     utils.clearDatabase();
+
+    it('should add tenant on all discriminators of a model', function (done) {
+      let 
+        TestModel = utils.createTestModel({ kind: String }, {
+          schemaOptions : { discriminatorKey: 'kind' }
+        });
+
+      TestModel.discriminator('disc_key', new Schema({ inherit: Boolean }));
+
+      TestModel.byTenant(1).create({ inherit: true, kind: 'disc_key' }, (err, doc) => {
+        assert.equal(doc.tenantId, 1);
+        assert.equal(doc.inherit, true, 'does not inherit');
+        assert.equal(doc.kind, 'disc_key');
+        done();
+      });
+    });
+
+    it('should inherit properties from Model when using discriminator', function (done) {
+      let 
+        TestModel = utils.createTestModel({ kind: String });
+
+      let 
+        DiscriminatorTest = utils.createTestModel({ inherit: Boolean });
+
+      DiscriminatorTest = TestModel.discriminator('DiscriminatorTest', DiscriminatorTest.schema);
+      
+      DiscriminatorTest.byTenant(1).create({ inherit: true, kind: 'test' }, (err, doc) => {
+        assert.equal(doc.__t, 'DiscriminatorTest');
+        assert.equal(doc.tenantId, 1);
+        assert(doc.inherit);
+        assert.equal(doc.kind, 'test');
+        done();
+      });
+    });
 
     it('should bind tenant context to Model.count().', function(done) {
       let

@@ -7,8 +7,12 @@ description: >
   multi-tenancy environment (on premis vs. cloud hosted) is a question of a single line of config.
 
 releases:
+- version: 1.5.0
+  date: 2018-07-06
+  fixed:
+  - Fix discriminator handling, properly preserve tenant scope. ([#38](https://github.com/craftup/node-mongo-tenant/issues/38))
 - version: 1.4.0
-  date: 2017-03-20
+  date: 2018-03-20
   description: Mongoose 5 compatibility
   added:
   - >
