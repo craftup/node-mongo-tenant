@@ -316,7 +316,7 @@ class MongoTenant {
     }
 
     // create tenant models for discriminators if they exist
-    if(BaseModel.discriminators) {
+    if (BaseModel.discriminators) {
       MongoTenantModel.discriminators = {};
 
       for (let key in BaseModel.discriminators) {
