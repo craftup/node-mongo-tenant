@@ -156,8 +156,6 @@ describe('MongoTenant', function() {
             assert(!err, 'error should occour'); // I guess it's fine that no error occours. that is just mongo behaviour
             // however the document should not be deleted, since ModelClassT2 should have no access to elements of tenant1
             ModelClassT1.findOne(t1Instance._id, (err, modelInst) => {
-              console.log(err);
-              console.log(modelInst);
               assert(modelInst, 'modelInstance should still be available, since it should not be able to delete across tenants');
               done();
             });              
