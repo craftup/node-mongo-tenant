@@ -259,6 +259,18 @@ class MongoTenant {
         return super.aggregate.apply(this, operations);
       }
 
+      static deleteOne(conditions, callback) {
+        conditions[tenantIdKey] = this[tenantIdGetter]();
+
+        return super.deleteOne(conditions, callback);
+      }
+
+      static deleteMany(conditions, options, callback) {
+        conditions[tenantIdKey] = this[tenantIdGetter]();
+
+        return super.deleteMany(conditions, options, callback);
+      }
+
       static remove(conditions, callback) {
         if (arguments.length === 1 && typeof conditions === 'function') {
           callback = conditions;
