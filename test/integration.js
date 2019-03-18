@@ -161,7 +161,47 @@ describe('MongoTenant', function() {
             });              
           });
         });
-      });      
+      });
+    });
+
+    it('should bind Model.deleteOne(conditions, cb) to correct tenant context.', function(done) {
+      let TestModel = utils.createTestModel({});
+
+      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
+        assert(!err, 'Expected creation of 2 test entities to work.');
+
+        TestModel.byTenant('tenant1').deleteOne({tenantId: 'tenant2'}, (deletionError) => {
+          assert(!deletionError, 'Expected Model.deleteMany() to work');
+
+          TestModel.find({}, (lookupErr, entities) => {
+            assert(!lookupErr, 'Expected Model.find() to work.');
+            assert.equal(entities.length, 1, 'Expected to find only one entity.');
+            assert.equal(entities[0].tenantId, 'tenant2', 'Expected tenant2 scope on entity.');
+
+            done();
+          });
+        });
+      });
+    });
+
+    it('should bind Model.deleteMany(conditions, options, cb) to correct tenant context.', function(done) {
+      let TestModel = utils.createTestModel({num: Number});
+
+      TestModel.create({tenantId: 'tenant1', num: 1}, {tenantId: 'tenant1', num: 1}, {tenantId: 'tenant2', num: 1}, (err) => {
+        assert(!err, 'Expected creation of 3 test entities to work.');
+
+        TestModel.byTenant('tenant1').deleteMany({num: 1}, (deletionError) => {
+          assert(!deletionError, 'Expected Model.deleteMany() to work');
+
+          TestModel.find({}, (lookupErr, entities) => {
+            assert(!lookupErr, 'Expected Model.find() to work.');
+            assert.equal(entities.length, 1, 'Expected to find only one entity.');
+            assert.equal(entities[0].tenantId, 'tenant2', 'Expected tenant2 scope on entity.');
+
+            done();
+          });
+        });
+      });
     });
   });
 });
