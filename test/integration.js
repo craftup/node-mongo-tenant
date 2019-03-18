@@ -133,6 +133,36 @@ describe('MongoTenant', function() {
         );
       });
     });
+    
+    it('should not be able to delete across tenants', (done) => {
+      const TestModel = utils.createTestModel({
+        test: {
+          type: String,
+          required: true,
+          trim: true
+      }});
+
+      const ModelClassT1 = TestModel.byTenant('tenant1');
+      const ModelClassT2 = TestModel.byTenant('tenant2');
+
+      const t1Instance = new ModelClassT1({ test: 't1Instance' });
+      const t2Instance = new ModelClassT2({ test: 't2Instance' });
+
+      t1Instance.save((err1) => {
+        assert(!err1, 'save t1 instance should work');
+        t2Instance.save((err2)=> {
+          assert(!err2, 'save t2 instance should work');
+          ModelClassT2.deleteOne({ _id: t1Instance._id}, (err) => {
+            assert(!err, 'error should occour'); // I guess it's fine that no error occours. that is just mongo behaviour
+            // however the document should not be deleted, since ModelClassT2 should have no access to elements of tenant1
+            ModelClassT1.findOne(t1Instance._id, (err, modelInst) => {
+              assert(modelInst, 'modelInstance should still be available, since it should not be able to delete across tenants');
+              done();
+            });              
+          });
+        });
+      });
+    });
 
     it('should bind Model.deleteOne(conditions, cb) to correct tenant context.', function(done) {
       let TestModel = utils.createTestModel({});
