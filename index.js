@@ -171,7 +171,7 @@ class MongoTenant {
           // delete the old index
           path._index = null;
           delete path.options.unique;
-          
+
           // prepare new options
           let indexOptions = {
             unique: true
@@ -271,6 +271,9 @@ class MongoTenant {
 
         if (Array.isArray(operations[0])) {
           pipeline = operations[0];
+        } else if (arguments.length === 1 || typeof arguments[1] === 'function') {
+          // mongoose 5.x compatibility
+          pipeline = operations[0] = [operations[0]];
         }
 
         pipeline.unshift({
@@ -280,6 +283,18 @@ class MongoTenant {
         });
 
         return super.aggregate.apply(this, operations);
+      }
+
+      static deleteOne(conditions, callback) {
+        conditions[tenantIdKey] = this[tenantIdGetter]();
+
+        return super.deleteOne(conditions, callback);
+      }
+
+      static deleteMany(conditions, options, callback) {
+        conditions[tenantIdKey] = this[tenantIdGetter]();
+
+        return super.deleteMany(conditions, options, callback);
       }
 
       static remove(conditions, callback) {
@@ -338,7 +353,17 @@ class MongoTenant {
         continue;
       }
 
-      MongoTenantModel[staticProperty] = BaseModel[staticProperty];
+      let descriptor = Object.getOwnPropertyDescriptor(BaseModel, staticProperty);
+      Object.defineProperty(MongoTenantModel, staticProperty, descriptor);
+    }
+
+    // create tenant models for discriminators if they exist
+    if (BaseModel.discriminators) {
+      MongoTenantModel.discriminators = {};
+
+      for (let key in BaseModel.discriminators) {
+        MongoTenantModel.discriminators[key] = this.createTenantAwareModel(BaseModel.discriminators[key], tenantId);
+      }
     }
 
     return MongoTenantModel;
@@ -453,7 +478,7 @@ class MongoTenant {
     query._conditions[tenantIdKey] = tenantId;
 
     // avoid jumping tenant context when overwriting a model.
-    if (query.options.overwrite) {
+    if ((tenantIdKey in query._update) || query.options.overwrite) {
       query._update[tenantIdKey] = tenantId;
     }
 

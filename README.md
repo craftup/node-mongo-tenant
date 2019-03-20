@@ -28,29 +28,32 @@ is a question of a single line of config.
 
 ## Requirements
 
-Tested with mongoose from version >= 4.3.0.
+Mongo tenant is compatible with mongoose 4 and 5.
 
 ## Incompatibilities
 
-* Mongo Tenant is incomapatible with mongoose 4.8.1-4.8.2 see [Automattic/mongoose#4947](https://github.com/Automattic/mongoose/issues/4947).
+* Mongo Tenant does not work with mongoose 4.8.1-4.8.2 see [Automattic/mongoose#4947](https://github.com/Automattic/mongoose/issues/4947).
 
 ## Install
 
-`$ npm install --save mongo-tenant`
+```sh
+$ npm i -S mongo-tenant
+// or
+$ yarn add mongo-tenant
+```
 
 ## Use
 
 Register the plugin on the relevant mongoose schema.
 
 ```javascript
-const
-  mongoose = require('mongoose'),
-  mongoTenant = require('mongo-tenant');
+const mongoose = require('mongoose');
+const mongoTenant = require('mongo-tenant');
 
-let MySchema = new mongoose.Schema({});
+const MySchema = new mongoose.Schema({});
 MySchema.plugin(mongoTenant);
 
-let MyModel = mongoose.model('MyModel', MySchema);
+const MyModel = mongoose.model('MyModel', MySchema);
 ```
 
 Retrieve the model in tenant scope with static `byTenant` method. This will return
@@ -59,7 +62,7 @@ It has the exactly same interface as any other mongoose model but prevents
 the access to other tenant scopes.
 
 ```javascript
-let MyTenantBoundModel = MyModel.byTenant('some-tenant-id');
+const MyTenantBoundModel = MyModel.byTenant('some-tenant-id');
 
 (new MyTenantBoundModel()).getTenantId() === 'some-tenant-id'; // true
 
@@ -79,7 +82,7 @@ the bound tenant scope with `getTenantId()` method.
 // With enabled mongo-tenant on a schema, all tenant bound models
 // and there instances provide the hasTenantContext flag
 if (SomeModelClassOrInstance.hasTenantContext) {
-  let tenantId = SomeModelClassOrInstance.getTenantId();
+  const tenantId = SomeModelClassOrInstance.getTenantId();
   ...
 }
 ```
@@ -99,7 +102,7 @@ To skip the automatic unique key extension of mongo-tenant for a specific
 index you can set the `preserveUniqueKey` config option to true.
 
 ```javascript
-let MySchema = new mongoose.Schema({
+const MySchema = new mongoose.Schema({
   someField: {
     unique: true,
     preserveUniqueKey: true
@@ -147,7 +150,7 @@ But you have the ability to adjust the behavior and api of the mongo tenant
 to your needs.
 
 ```javascript
-let config = {
+const config = {
   /**
    * Whether the mongo tenant plugin MAGIC is enabled. Default: true
    */

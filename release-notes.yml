@@ -13,6 +13,16 @@ releases:
   changed:
   - Models with tenant context (`Model.byTenant(...)`) will have a modified db connection object
     returning Models bound to same context.
+- version: 1.5.0
+  date: 2018-07-06
+  fixed:
+  - Fix discriminator handling, properly preserve tenant scope. ([#38](https://github.com/craftup/node-mongo-tenant/issues/38))
+- version: 1.4.0
+  date: 2018-03-20
+  description: Mongoose 5 compatibility
+  added:
+  - >
+    Make mongo tenant compatible with mongoose 5. :tada: ([#34](https://github.com/craftup/node-mongo-tenant/issues/34))
 - version: 1.3.2
   date: 2017-11-10
   fixed:
