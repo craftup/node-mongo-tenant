@@ -7,6 +7,9 @@
 
 'use strict';
 
+// Private storage of plugin instances
+const ns = new WeakMap();
+
 /**
  * MongoTenant is a class aimed for use in mongoose schema plugin scope.
  * It adds support for multi-tenancy on document level (adding a tenant reference field and include this in unique indexes).
@@ -16,7 +19,6 @@ class MongoTenant {
   /**
    * Create a new mongo tenant from a given schema.
    *
-   * @param {mongoose.Schema} schema
    * @param {Object} [options] - A hash of configuration options.
    * @param {boolean} [options.enabled] - Whether the mongo tenant plugin is enabled. Default: **true**.
    * @param {string} [options.tenantIdKey] - The name of the tenant id field. Default: **tenantId**.
@@ -27,8 +29,13 @@ class MongoTenant {
    */
   constructor(schema, options) {
     this._modelCache = {};
-    this.schema = schema;
     this.options = options || {};
+
+    // store schema in privately so we don't produce any infinite loops on dump deep merge of schemas
+    // (schema.plugins[] -> mongoTenant.schema -> ...)
+    ns[this] = {
+      schema
+    };
   }
 
   /**
@@ -131,7 +138,7 @@ class MongoTenant {
         }
       };
 
-      this.schema.add(tenantField);
+      ns[this].schema.add(tenantField);
     }
 
     return this;
@@ -146,7 +153,7 @@ class MongoTenant {
   compoundIndexes() {
     if (this.isEnabled()) {
       // apply tenancy awareness to schema level unique indexes
-      this.schema._indexes.forEach((index) => {
+      ns[this].schema._indexes.forEach((index) => {
         // extend uniqueness of indexes by tenant id field
         // skip if perserveUniqueKey of the index is set to true
         if (index[1].unique === true && index[1].preserveUniqueKey !== true) {
@@ -163,7 +170,7 @@ class MongoTenant {
       });
 
       // apply tenancy awareness to field level unique indexes
-      this.schema.eachPath((key, path) => {
+      ns[this].schema.eachPath((key, path) => {
         let pathOptions = path.options;
 
         // skip if perserveUniqueKey of an unique field is set to true
@@ -188,7 +195,7 @@ class MongoTenant {
           }
 
           // create a new one that includes the tenant id field
-          this.schema.index({
+          ns[this].schema.index({
             [this.getTenantIdKey()]: 1,
             [key]: 1
           }, indexOptions);
@@ -208,7 +215,7 @@ class MongoTenant {
   injectApi() {
     let me = this;
 
-    Object.assign(this.schema.statics, {
+    Object.assign(ns[this].schema.statics, {
       [this.getAccessorMethod()]: function (tenantId) {
         if (!me.isEnabled()) {
           return this.model(this.modelName);
@@ -403,7 +410,7 @@ class MongoTenant {
       tenantIdGetter = this.getTenantIdGetter(),
       tenantIdKey = this.getTenantIdKey();
 
-    this.schema.pre('count', function(next) {
+    ns[this].schema.pre('count', function(next) {
       if (this.model.hasTenantContext) {
         this._conditions[tenantIdKey] = this.model[tenantIdGetter]();
       }
@@ -411,7 +418,7 @@ class MongoTenant {
       next();
     });
 
-    this.schema.pre('find', function(next) {
+    ns[this].schema.pre('find', function(next) {
       if (this.model.hasTenantContext) {
         this._conditions[tenantIdKey] = this.model[tenantIdGetter]();
       }
@@ -419,7 +426,7 @@ class MongoTenant {
       next();
     });
 
-    this.schema.pre('findOne', function(next) {
+    ns[this].schema.pre('findOne', function(next) {
       if (this.model.hasTenantContext) {
         this._conditions[tenantIdKey] = this.model[tenantIdGetter]();
       }
@@ -427,7 +434,7 @@ class MongoTenant {
       next();
     });
 
-    this.schema.pre('findOneAndRemove', function(next) {
+    ns[this].schema.pre('findOneAndRemove', function(next) {
       if (this.model.hasTenantContext) {
         this._conditions[tenantIdKey] = this.model[tenantIdGetter]();
       }
@@ -435,7 +442,7 @@ class MongoTenant {
       next();
     });
 
-    this.schema.pre('findOneAndUpdate', function(next) {
+    ns[this].schema.pre('findOneAndUpdate', function(next) {
       if (this.model.hasTenantContext) {
         me._guardUpdateQuery(this);
       }
@@ -443,7 +450,7 @@ class MongoTenant {
       next();
     });
 
-    this.schema.pre('save', function(next) {
+    ns[this].schema.pre('save', function(next) {
       if (this.constructor.hasTenantContext) {
         this[tenantIdKey] = this.constructor[tenantIdGetter]();
       }
@@ -451,7 +458,7 @@ class MongoTenant {
       next();
     });
 
-    this.schema.pre('update', function(next) {
+    ns[this].schema.pre('update', function(next) {
       if (this.model.hasTenantContext) {
         me._guardUpdateQuery(this);
       }

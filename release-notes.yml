@@ -13,6 +13,8 @@ releases:
   changed:
   - Models with tenant context (`Model.byTenant(...)`) will have a modified db connection object
     returning Models bound to same context.
+  - Plugin instances do not have any longer a public reference to the schema they are created for. This is necessary to
+    avoid inifinite loops in case two tenant aware schemas are used in a discriminator setup.
 - version: 1.5.0
   date: 2018-07-06
   fixed:
