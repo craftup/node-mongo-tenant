@@ -50,6 +50,26 @@ describe('MongoTenant', function() {
       });
     });
 
+    it('should bind tenant context to Model.countDocuments().', function(done) {
+          let TestModel = utils.createTestModel({});
+
+          TestModel.byTenant(1).create({}, {}, {}, (err) => {
+              assert(!err, 'Expected creation of 3 test entities to work.');
+
+              TestModel.byTenant(1).countDocuments((err, count) => {
+                  assert(!err, 'Expected entity counting to work.');
+                  assert.equal(count, 3, 'Expected 3 entries for tenant `1`.');
+
+                  TestModel.byTenant(2).countDocuments((err, count) => {
+                      assert(!err, 'Expected entity counting to work.');
+                      assert.equal(count, 0, 'Expected 0 entries for tenant `2`.');
+
+                      done();
+                  });
+              });
+          });
+    });
+
     it('should bind tenant context to Model.count().', function(done) {
       let
         TestModel = utils.createTestModel({});
@@ -71,6 +91,27 @@ describe('MongoTenant', function() {
       });
     });
 
+      it('should avoid tenant context jumping on Model.countDocuments().', function(done) {
+          let
+              TestModel = utils.createTestModel({});
+
+          TestModel.byTenant(1).create({}, {}, {}, (err) => {
+              assert(!err, 'Expected creation of 3 test entities to work.');
+
+              TestModel.byTenant(2).countDocuments({tenantId: 1}, (err, count) => {
+                  assert(!err, 'Expected entity counting to work.');
+                  assert.equal(count, 0, 'Expected 0 entries for tenant `2`.');
+
+                  TestModel.byTenant(1).countDocuments({tenantId: 2}, (err, count) => {
+                      assert(!err, 'Expected entity counting to work.');
+                      assert.equal(count, 3, 'Expected 3 entries for tenant `1`.');
+
+                      done();
+                  });
+              });
+          });
+      });
+
     it('should avoid tenant context jumping on Model.count().', function(done) {
       let
         TestModel = utils.createTestModel({});
@@ -90,6 +131,20 @@ describe('MongoTenant', function() {
           });
         });
       });
+    });
+    it('should not affect Model.count() when not in tenant countDocuments.', function(done) {
+        let TestModel = utils.createTestModel({});
+
+        TestModel.create({tenantId: 1}, {tenantId: 2}, {tenantId: 3}, (err) => {
+            assert(!err, 'Expected creation of 3 test entities to work.');
+
+            TestModel.countDocuments((err, count) => {
+                assert(!err, 'Expected entity counting to work.');
+                assert.equal(count, 3, 'Expected 3 entries for all tenants.');
+
+                done();
+            });
+        });
     });
 
     it('should not affect Model.count() when not in tenant context.', function(done) {
