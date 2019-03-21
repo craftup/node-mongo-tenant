@@ -38,7 +38,7 @@ class MongoTenant {
       schema: {
         get: () => schema,
       }
-    })
+    });
   }
 
   /**
