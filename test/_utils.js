@@ -18,7 +18,11 @@ let testModelUnifier = 0;
 mongoose.Promise = Promise;
 
 function createTestModel(schemaDefinition, options) {
-  options = options || {};
+  options = Object.assign({
+    applyOnSchema: void 0,
+    mongoTenant: void 0,
+    withPlugin: true
+  }, options);
   
   let schema = new Schema(schemaDefinition, options.schemaOptions);
 
@@ -26,7 +30,9 @@ function createTestModel(schemaDefinition, options) {
     options.applyOnSchema(schema);
   }
 
-  schema.plugin(mongoTenantPlugin, options.mongoTenant);
+  if (options.withPlugin) {
+    schema.plugin(mongoTenantPlugin, options.mongoTenant);
+  }
 
   return mongoose.model(`mongoTenantTestModel${++testModelUnifier}`, schema);
 }

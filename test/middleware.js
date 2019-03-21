@@ -149,6 +149,86 @@ describe('MongoTenant', function() {
       });
     });
 
+    it('should pass down tenant context on Model.find().populate()', function (done) {
+      const ChildModel = utils.createTestModel({});
+      const ParentModel = utils.createTestModel({
+        childs: [{ type: Schema.Types.ObjectId, ref: ChildModel.modelName }],
+      });
+
+      ChildModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err, child1, child2) => {
+        assert(!err, 'Expected creation of 2 child test entities to work.');
+
+        ParentModel.create({tenantId: 'tenant1', childs: [child1._id, child2._id]}, (err) => {
+          assert(!err, 'Expected creation of 1 parent test entity to work.');
+
+          ParentModel.byTenant('tenant1').find().populate('childs').exec((err, matches) => {
+            assert(!err, 'Expected entity search by `Model.find` to work.');
+            assert.equal(matches.length, 1, 'Expected to find exactly 1 parent entity.');
+
+            const parent = matches[0];
+            assert.equal(parent.childs.length, 1, 'Expected exactly 1 child in found parent entity.');
+            assert.equal(parent.childs[0].tenantId, 'tenant1', 'Expected child of found parent entity to be of same tenant.');
+
+            done();
+          });
+        });
+      });
+    });
+
+    it('should not pass down tenant context on Model.find().populate() if referenced model is not tenant based', function (done) {
+      const ChildModel = utils.createTestModel({}, {withPlugin: false});
+      const ParentModel = utils.createTestModel({
+        childs: [{ type: Schema.Types.ObjectId, ref: ChildModel.modelName }],
+      });
+
+      ChildModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err, child1, child2) => {
+        assert(!err, 'Expected creation of 2 child test entities to work.');
+
+        ParentModel.create({tenantId: 'tenant1', childs: [child1._id, child2._id]}, (err) => {
+          assert(!err, 'Expected creation of 1 parent test entity to work.');
+
+          ParentModel.byTenant('tenant1').find().populate('childs').exec((err, matches) => {
+            assert(!err, 'Expected entity search by `Model.find` to work.');
+            assert.equal(matches.length, 1, 'Expected to find exactly 1 parent entity.');
+
+            const parent = matches[0];
+            assert.equal(parent.childs.length, 2, 'Expected exactly 2 childs in found parent entity.');
+            assert.equal(parent.childs[0].hasTenantContext, void 0, 'Expected first child to not have a tenant context.');
+            assert.equal(parent.childs[1].hasTenantContext, void 0, 'Expected second child to not have a tenant context.');
+            done();
+          });
+        });
+      });
+    });
+
+    it('should not pass down tenant context on Model.find().populate() if referenced model has different tenant level', function (done) {
+      const ChildModel = utils.createTestModel({}, {
+        mongoTenant: { tenantIdKey: 'otherTenantId' },
+      });
+      const ParentModel = utils.createTestModel({
+        childs: [{ type: Schema.Types.ObjectId, ref: ChildModel.modelName }],
+      });
+
+      ChildModel.create({otherTenantId: 'tenant1'}, {otherTenantId: 'tenant2'}, (err, child1, child2) => {
+        assert(!err, 'Expected creation of 2 child test entities to work.');
+
+        ParentModel.create({tenantId: 'tenant1', childs: [child1._id, child2._id]}, (err) => {
+          assert(!err, 'Expected creation of 1 parent test entity to work.');
+
+          ParentModel.byTenant('tenant1').find().populate('childs').exec((err, matches) => {
+            assert(!err, 'Expected entity search by `Model.find` to work.');
+            assert.equal(matches.length, 1, 'Expected to find exactly 1 parent entity.');
+
+            const parent = matches[0];
+            assert.equal(parent.childs.length, 2, 'Expected exactly 2 childs in found parent entity.');
+            assert.equal(parent.childs[0].hasTenantContext, void 0, 'Expected first child to not have a tenant context.');
+            assert.equal(parent.childs[1].hasTenantContext, void 0, 'Expected second child to not have a tenant context.');
+            done();
+          });
+        });
+      });
+    });
+
     it('should bind tenant context to Model.findOne().', function(done) {
       let TestModel = utils.createTestModel({});
 

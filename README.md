@@ -120,6 +120,29 @@ MySchema.index({
 });
 ```
 
+### Context bound models and populate
+
+Once a model with tenant context is created it will try to keep the context
+for other models created via it. Whenever it detects that a subsequent models
+tenant configuration is compatible to its own, it will return that model
+bound to the same tenant context.
+
+```javascript
+const AuthorSchema = new mongoose.Schema({});
+AuthorSchema.plugin(mongoTenant);
+const AuthorModel = mongoose.model('author', AuthorSchema);
+
+const BookSchema = new mongoose.Schema({
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'author' }
+});
+BookSchema.plugin(mongoTenant);
+const BookModel = mongoose.model('book', BookSchema);
+
+const BoundBookModel = BookModel.byTenant('some-tenant-id');
+BoundBookModel.model('author'); // return author model bound to "some-tenant-id"
+BoundBookModel.db.model('author'); // return author model bound to "some-tenant-id"
+```
+
 ### Configuration
 
 The mongo tenant works out of the box, so all config options are optional.

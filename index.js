@@ -11,12 +11,14 @@
  * MongoTenant is a class aimed for use in mongoose schema plugin scope.
  * It adds support for multi-tenancy on document level (adding a tenant reference field and include this in unique indexes).
  * Furthermore it provides an API for tenant bound models.
+ *
+ * @property {object} _modelCache
+ * @property {object} schema
  */
 class MongoTenant {
   /**
    * Create a new mongo tenant from a given schema.
    *
-   * @param {mongoose.Schema} schema
    * @param {Object} [options] - A hash of configuration options.
    * @param {boolean} [options.enabled] - Whether the mongo tenant plugin is enabled. Default: **true**.
    * @param {string} [options.tenantIdKey] - The name of the tenant id field. Default: **tenantId**.
@@ -26,9 +28,17 @@ class MongoTenant {
    * @param {boolean} [options.requireTenantId] - Whether tenant id field should be required. Default: **false**.
    */
   constructor(schema, options) {
-    this._modelCache = {};
-    this.schema = schema;
     this.options = options || {};
+
+    const modelCache = {};
+    Object.defineProperties(this, {
+      _modelCache: {
+        get: () => modelCache,
+      },
+      schema: {
+        get: () => schema,
+      }
+    });
   }
 
   /**
@@ -96,6 +106,24 @@ class MongoTenant {
    */
   isTenantIdRequired() {
     return this.options.requireTenantId === true;
+  }
+
+  /**
+   * Checks if instance is compatible to other plugin instance
+   *
+   * For population of referenced models it's necessary to detect if the tenant
+   * plugin installed in these models is compatible to the plugin of the host
+   * model. If they are compatible they are one the same "level".
+   *
+   * @param {MongoTenant} plugin
+   */
+  isCompatibleTo(plugin) {
+    return (
+      plugin &&
+      typeof plugin.getAccessorMethod === 'function' &&
+      typeof plugin.getTenantIdKey === 'function' &&
+      this.getTenantIdKey() === plugin.getTenantIdKey()
+    );
   }
 
   /**
@@ -190,23 +218,29 @@ class MongoTenant {
   injectApi() {
     let me = this;
 
-    this.schema.statics[this.getAccessorMethod()] = function(tenantId) {
-      if (!me.isEnabled()) {
-        return this.model(this.modelName);
+    Object.assign(this.schema.statics, {
+      [this.getAccessorMethod()]: function (tenantId) {
+        if (!me.isEnabled()) {
+          return this.model(this.modelName);
+        }
+
+        let modelCache = me._modelCache[this.modelName] || (me._modelCache[this.modelName] = {});
+
+        // lookup tenant-bound model in cache
+        if (!modelCache[tenantId]) {
+          let Model = this.model(this.modelName);
+
+          // Cache the tenant bound model class.
+          modelCache[tenantId] = me.createTenantAwareModel(Model, tenantId);
+        }
+
+        return modelCache[tenantId];
+      },
+
+      get mongoTenant() {
+        return me;
       }
-
-      let modelCache = me._modelCache[this.modelName] || (me._modelCache[this.modelName] = {});
-
-      // lookup tenant-bound model in cache
-      if (!modelCache[tenantId]) {
-        let Model = this.model(this.modelName);
-
-        // Cache the tenant bound model class.
-        modelCache[tenantId] = me.createTenantAwareModel(Model, tenantId);
-      }
-
-      return modelCache[tenantId];
-    };
+    });
 
     return this;
   }
@@ -223,6 +257,8 @@ class MongoTenant {
     let
       tenantIdGetter = this.getTenantIdGetter(),
       tenantIdKey = this.getTenantIdKey();
+
+    const db = this.createTenantAwareDb(BaseModel.db, tenantId);
 
     class MongoTenantModel extends BaseModel {
       static get hasTenantContext() {
@@ -306,6 +342,10 @@ class MongoTenant {
         });
       }
 
+      static get db() {
+        return db;
+      }
+
       get hasTenantContext() {
         return true;
       }
@@ -337,6 +377,29 @@ class MongoTenant {
     }
 
     return MongoTenantModel;
+  }
+
+  /**
+   * Create db connection bound to a specific tenant
+   *
+   * @param {Connection} unawareDb
+   * @param {*} tenantId
+   * @returns {Connection}
+   */
+  createTenantAwareDb(unawareDb, tenantId) {
+    const me = this;
+    const awareDb = Object.create(unawareDb);
+    awareDb.model = (name) => {
+      const unawareModel = unawareDb.model(name);
+      const otherPlugin = unawareModel.mongoTenant;
+
+      if (!me.isCompatibleTo(otherPlugin)) {
+        return unawareModel;
+      }
+
+      return unawareModel[otherPlugin.getAccessorMethod()](tenantId);
+    };
+    return awareDb;
   }
 
   /**
