@@ -4,7 +4,7 @@ description: >
   document level (for now...). It creates a tenant-reference field and takes care of unique indexes.
   Also it provides access to tenant-bound model-classes, that prohibit the exploid of the given tenant scope.
   Last but not least the "MAGIC" can be disabled so that shipping of the same code in single- and
-  multi-tenancy environment (on premis vs. cloud hosted) is a question of a single line of config.
+  multi-tenancy environment (on premise vs. cloud hosted) is a question of a single line of config.
 
 releases:
 - version: 1.6.0
