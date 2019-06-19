@@ -1,5 +1,10 @@
-const middleware = require('./index');
+const installMiddleware = require('./index');
+const buildOptions = require('../options');
+const {Schema} = require('mongoose');
 
 describe('middleware', () => {
-  it.skip('needs tests', () => {});
+  it('does not fail', () => {
+    const schema = new Schema({});
+    installMiddleware({schema, options: buildOptions()});
+  });
 });
