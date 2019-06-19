@@ -4,12 +4,12 @@
  * @param {string} tenantIdKey
  */
 const compoundSchemaLevelUniqueIndexes = ({schema, tenantIdKey}) => {
-  schema._indexes.forEach((index) => {
+  schema._indexes.forEach(index => {
     // extend uniqueness of indexes by tenant id field
     // skip if perserveUniqueKey of the index is set to true
     if (index[1].unique === true && index[1].preserveUniqueKey !== true) {
       const tenantAwareIndex = {
-        [tenantIdKey]: 1
+        [tenantIdKey]: 1,
       };
 
       for (let indexedField in index[0]) {
@@ -38,7 +38,7 @@ const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
 
       // prepare new options
       let indexOptions = {
-        unique: true
+        unique: true,
       };
 
       // add sparse option if set in options
@@ -48,14 +48,18 @@ const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
 
       // add partialFilterExpression option if set in options
       if (pathOptions.partialFilterExpression) {
-        indexOptions.partialFilterExpression = pathOptions.partialFilterExpression;
+        indexOptions.partialFilterExpression =
+          pathOptions.partialFilterExpression;
       }
 
       // create a new one that includes the tenant id field
-      schema.index({
-        [tenantIdKey]: 1,
-        [key]: 1
-      }, indexOptions);
+      schema.index(
+        {
+          [tenantIdKey]: 1,
+          [key]: 1,
+        },
+        indexOptions
+      );
     }
   });
 };

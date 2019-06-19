@@ -10,7 +10,7 @@ const arePluginsCompatible = require('./are-plugins-compatible');
  */
 module.exports = ({db, tenantId, options}) => {
   const awareDb = Object.create(db);
-  awareDb.model = (name) => {
+  awareDb.model = name => {
     const unawareModel = db.model(name);
     /** @type MongoTenantOptions */
     const otherPluginOptions = unawareModel.mongoTenant;

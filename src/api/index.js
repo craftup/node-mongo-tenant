@@ -10,7 +10,7 @@ module.exports = ({schema, options}) => {
   const cache = buildModelCache();
 
   Object.assign(schema.statics, {
-    [accessorMethod]: function (tenantId) {
+    [accessorMethod]: function(tenantId) {
       if (!cache.has(this.modelName, tenantId)) {
         const base = this.model(this.modelName);
         const model = createTenantAwareModel({base, tenantId});
@@ -20,7 +20,7 @@ module.exports = ({schema, options}) => {
     },
     get mongoTenant() {
       return {...options};
-    }
+    },
   });
 
   return this;

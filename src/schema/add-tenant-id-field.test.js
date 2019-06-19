@@ -12,7 +12,7 @@ describe('add-tenant-id-field', () => {
           index: true,
           type: String,
           required: true,
-        }
+        },
       });
     });
   });

@@ -17,7 +17,7 @@
     "mongo"
   ],
   "scripts": {
-    "hint": "jshint .",
+    "hint": "prettier -c src/**/*.js",
     "test": "jest",
     "test-and-cover": "jest --coverage",
     "coveralls": "coveralls < ./coverage/lcov.info",
@@ -35,10 +35,10 @@
     "@release-notes/cli": "^0.1.0",
     "coveralls": "^3.0.0",
     "jest": "^24.8.0",
-    "jshint": "^2.10.2",
     "mongodb": "^2.2.35",
     "mongoose": "^5.0.11",
-    "nyc": "^11.6.0"
+    "nyc": "^11.6.0",
+    "prettier": "^1.18.2"
   },
   "peerDependencies": {
     "mongoose": ">=4.3.0 <=4.8.0 || >=4.8.3"

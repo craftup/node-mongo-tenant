@@ -37,7 +37,9 @@ describe('tenant-aware-db', () => {
 
     it('returns a tenant unaware model if not compatible', () => {
       const unawareModel = {
-        [options.accessorMethod]: () => { throw new Error(); },
+        [options.accessorMethod]: () => {
+          throw new Error();
+        },
         mongoTenant: {
           ...options,
           tenantIdKey: 'dimension',
@@ -54,4 +56,3 @@ describe('tenant-aware-db', () => {
     });
   });
 });
-

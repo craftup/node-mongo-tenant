@@ -7,21 +7,21 @@ describe('are-plugins-compatible', () => {
       tenantIdKey: 'tenantId',
     };
 
-    it('returns true if they have equal tenantIdKey\'s', () => {
+    it("returns true if they have equal tenantIdKey's", () => {
       const a = {...options};
       const b = {...options};
       const result = arePluginsCompatible(a, b);
       expect(result).toBe(true);
     });
 
-    it('returns false if they have different tenantIdKey\'s', () => {
+    it("returns false if they have different tenantIdKey's", () => {
       const a = {...options};
       const b = {
         ...options,
         tenantIdKey: 'dimensionId',
       };
       const result = arePluginsCompatible(a, b);
-      expect(result).toBe(false,);
+      expect(result).toBe(false);
     });
   });
 });

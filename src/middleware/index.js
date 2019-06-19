@@ -24,13 +24,15 @@ const middleware = ({schema, options}) => {
     'update',
     'updateOne',
     'updateMany',
-  ].forEach((operation) => schema.pre(operation, restrictToTenant));
+  ].forEach(operation => schema.pre(operation, restrictToTenant));
 
-  const protectedAgainstOverwrite = buildProtectAgainstTenantOverwrite({tenantIdKey, tenantIdGetter});
-  [
-    'findOneAndUpdate',
-    'update',
-  ].forEach((operation) => schema.pre(operation, protectedAgainstOverwrite));
+  const protectedAgainstOverwrite = buildProtectAgainstTenantOverwrite({
+    tenantIdKey,
+    tenantIdGetter,
+  });
+  ['findOneAndUpdate', 'update'].forEach(operation =>
+    schema.pre(operation, protectedAgainstOverwrite)
+  );
 
   schema.pre('save', buildAddTenantId({tenantIdKey, tenantIdGetter}));
 };

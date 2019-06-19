@@ -4,7 +4,7 @@ module.exports = ({schema, key, type, required}) => {
       index: true,
       type: type,
       required: required,
-    }
+    },
   };
 
   schema.add(field);

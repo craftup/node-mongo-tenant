@@ -14,7 +14,6 @@ describe('compound-indexes', () => {
       });
 
       describe('and index is unique', () => {
-
         describe('with unique key preservation disabled', () => {
           it('compounds the index', () => {
             schema.index({id: 1}, {unique: true, preserveUniqueKey: false});
@@ -46,12 +45,7 @@ describe('compound-indexes', () => {
         it('does NOT compounds the index', () => {
           schema.index({id: 1});
           compoundIndexes({schema, tenantIdKey});
-          expect(schema.indexes()).toEqual([
-            [
-              {id: 1},
-              {background: true},
-            ],
-          ]);
+          expect(schema.indexes()).toEqual([[{id: 1}, {background: true}]]);
         });
       });
     });
@@ -69,10 +63,7 @@ describe('compound-indexes', () => {
             });
             compoundIndexes({schema, tenantIdKey});
             expect(schema.indexes()).toEqual([
-              [
-                {id: 1, [tenantIdKey]: 1},
-                {unique: true, background: true},
-              ],
+              [{id: 1, [tenantIdKey]: 1}, {unique: true, background: true}],
             ]);
           });
 
@@ -90,7 +81,12 @@ describe('compound-indexes', () => {
             expect(schema.indexes()).toEqual([
               [
                 {id: 1, [tenantIdKey]: 1},
-                {unique: true, sparse: true, partialFilterExpression: {}, background: true},
+                {
+                  unique: true,
+                  sparse: true,
+                  partialFilterExpression: {},
+                  background: true,
+                },
               ],
             ]);
           });
@@ -107,10 +103,7 @@ describe('compound-indexes', () => {
             });
             compoundIndexes({schema, tenantIdKey});
             expect(schema.indexes()).toEqual([
-              [
-                {id: 1},
-                {unique: true, background: true},
-              ],
+              [{id: 1}, {unique: true, background: true}],
             ]);
           });
         });
@@ -124,12 +117,7 @@ describe('compound-indexes', () => {
             },
           });
           compoundIndexes({schema, tenantIdKey});
-          expect(schema.indexes()).toEqual([
-            [
-              {id: 1},
-              {background: true},
-            ],
-          ]);
+          expect(schema.indexes()).toEqual([[{id: 1}, {background: true}]]);
         });
       });
     });

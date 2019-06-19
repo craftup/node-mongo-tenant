@@ -2,7 +2,6 @@ const tenantAwareModel = require('./tenant-aware-model');
 const options = require('../options');
 
 describe('tenant-aware-model', () => {
-
   describe('when called with valid parameters', () => {
     const tenantId = '23';
     const tenantIdGetter = 'getTenantId';
@@ -28,7 +27,7 @@ describe('tenant-aware-model', () => {
 
     it('builds discriminator models', () => {
       base.discriminators = {
-        'test': class {},
+        test: class {},
       };
       model = tenantAwareModel({base, tenantId, tenantIdGetter, tenantIdKey});
       expect(model).toHaveProperty('discriminators.test');
@@ -94,7 +93,7 @@ describe('tenant-aware-model', () => {
           model.aggregate();
           expect(base.aggregate).toHaveBeenCalled();
           expect(base.aggregate.mock.calls[0][0]).toEqual([
-            {$match: {[tenantIdKey]: tenantId}}
+            {$match: {[tenantIdKey]: tenantId}},
           ]);
         });
 
@@ -129,24 +128,42 @@ describe('tenant-aware-model', () => {
 
       describe('overrides static remove which', () => {
         it.each([
-          ['just with conditions', [{foo: 'bar'}], [{foo: 'bar', [tenantIdKey]: tenantId}, undefined]],
-          ['with conditions and callback', [{foo: 'bar'}, callback], [{foo: 'bar', [tenantIdKey]: tenantId}, callback]],
-        ])('applies tenant context when called %s', (name, args, expectedBaseArgs) => {
-          base.remove = jest.fn();
-          model.remove(...args);
+          [
+            'just with conditions',
+            [{foo: 'bar'}],
+            [{foo: 'bar', [tenantIdKey]: tenantId}, undefined],
+          ],
+          [
+            'with conditions and callback',
+            [{foo: 'bar'}, callback],
+            [{foo: 'bar', [tenantIdKey]: tenantId}, callback],
+          ],
+        ])(
+          'applies tenant context when called %s',
+          (name, args, expectedBaseArgs) => {
+            base.remove = jest.fn();
+            model.remove(...args);
 
-          expect(base.remove).toHaveBeenCalledWith(...expectedBaseArgs);
-        });
+            expect(base.remove).toHaveBeenCalledWith(...expectedBaseArgs);
+          }
+        );
 
         it.each([
           ['without any arguments', [], [undefined, undefined]],
-          ['just with callback', [callback], [{[tenantIdKey]: tenantId}, callback]],
-        ])('does not apply tenant context when called %s', (name, args, expectedBaseArgs) => {
-          base.remove = jest.fn();
-          model.remove(...args);
+          [
+            'just with callback',
+            [callback],
+            [{[tenantIdKey]: tenantId}, callback],
+          ],
+        ])(
+          'does not apply tenant context when called %s',
+          (name, args, expectedBaseArgs) => {
+            base.remove = jest.fn();
+            model.remove(...args);
 
-          expect(base.remove).toHaveBeenCalledWith(...expectedBaseArgs);
-        });
+            expect(base.remove).toHaveBeenCalledWith(...expectedBaseArgs);
+          }
+        );
       });
 
       describe('overrides static insertMany which', () => {
@@ -155,7 +172,9 @@ describe('tenant-aware-model', () => {
           model.insertMany({}, undefined);
 
           expect(base.insertMany).toHaveBeenCalledTimes(1);
-          expect(base.insertMany.mock.calls[0][0]).toEqual({[tenantIdKey]: tenantId});
+          expect(base.insertMany.mock.calls[0][0]).toEqual({
+            [tenantIdKey]: tenantId,
+          });
         });
 
         it('applies tenant context on multiple documents', () => {
@@ -163,7 +182,9 @@ describe('tenant-aware-model', () => {
           model.insertMany([{}], undefined);
 
           expect(base.insertMany).toHaveBeenCalledTimes(1);
-          expect(base.insertMany.mock.calls[0][0]).toEqual([{[tenantIdKey]: tenantId}]);
+          expect(base.insertMany.mock.calls[0][0]).toEqual([
+            {[tenantIdKey]: tenantId},
+          ]);
         });
 
         it('builds tenant aware models for callback', done => {
@@ -184,7 +205,7 @@ describe('tenant-aware-model', () => {
           });
         });
 
-        it('forwards errors', (done) => {
+        it('forwards errors', done => {
           const expectedError = new Error('test');
           base.insertMany = (docs, callback) => {
             callback(expectedError);

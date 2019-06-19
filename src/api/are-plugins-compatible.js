@@ -3,12 +3,8 @@
  * @param {MongoTenantOptions} options
  * @returns {boolean}
  */
-const isPluginOptions = (options) => (
-  options &&
-  options.accessorMethod &&
-  options.tenantIdKey &&
-  true
-);
+const isPluginOptions = options =>
+  options && options.accessorMethod && options.tenantIdKey && true;
 /**
  * Checks if instance is compatible to other plugin instance
  *
@@ -22,8 +18,6 @@ const isPluginOptions = (options) => (
  */
 module.exports = (a, b) => {
   return (
-    isPluginOptions(a) &&
-    isPluginOptions(b) &&
-    a.tenantIdKey === b.tenantIdKey
+    isPluginOptions(a) && isPluginOptions(b) && a.tenantIdKey === b.tenantIdKey
   );
 };
