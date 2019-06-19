@@ -44,7 +44,7 @@ describe('api', () => {
 
     it('reports plugin options', () => {
       expect(schema).toHaveProperty('statics.mongoTenant');
-      expect(schema.statics.mongoTenant).toEqual(options)
+      expect(schema.statics.mongoTenant).toEqual(options);
     });
   });
 });

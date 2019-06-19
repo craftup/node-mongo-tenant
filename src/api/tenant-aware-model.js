@@ -33,7 +33,7 @@ const createPlainModel = ({
 
     const argumentsAsArray = Array.prototype.slice.call(arguments);
 
-    let callback = undefined;
+    let callback;
     if (typeof argumentsAsArray[argumentsAsArray.length - 1] === 'function') {
       callback = argumentsAsArray.pop();
     }

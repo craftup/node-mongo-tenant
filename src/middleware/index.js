@@ -1,5 +1,5 @@
 const buildAddTenantId = require('./document/add-tenant-id');
-const buildProtectAgainstTenantOverwrite = require('./query/protect-against-tenant-overwrite')
+const buildProtectAgainstTenantOverwrite = require('./query/protect-against-tenant-overwrite');
 const buildRestrictToTenant = require('./query/restrict-to-tenant');
 
 /**
