@@ -35,7 +35,7 @@
     "@release-notes/cli": "^0.1.0",
     "coveralls": "^3.0.0",
     "jest": "^24.8.0",
-    "jshint": "^2.9.5",
+    "jshint": "^2.10.2",
     "mongodb": "^2.2.35",
     "mongoose": "^5.0.11",
     "nyc": "^11.6.0"
