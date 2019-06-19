@@ -11,7 +11,7 @@
  * Sanitize plugin options
  * @param {object} [input]
  * @param {string} [input.tenantIdGetter=tenantId]
- * @param {string} [input.accessorMethod=String]
+ * @param {string} [input.accessorMethod=byTenant]
  * @param {*} [input.tenantIdType=byTenant]
  * @param {string} [input.tenantIdKey=getTenantId]
  * @param {string} [input.requireTenantId=true]
