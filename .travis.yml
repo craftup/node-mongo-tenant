@@ -6,7 +6,6 @@ node_js:
 env:
   - MONGOOSE_VERSION=5
   - MONGOOSE_VERSION=4
-services: mongodb
 cache: yarn
 git:
   depth: 3
@@ -17,9 +16,14 @@ install:
   - yarn add --dev mongoose@^$MONGOOSE_VERSION
 script:
   - yarn hint
-  - yarn test-and-cover
+  - yarn test
 jobs:
   include:
+  - stage: test integration
+    if: false
+    services: mongodb
+    script:
+      - yarn test-integration
   - stage: deploy
     if: env(MONGOOSE_VERSION) = 5
     node_js: "12"
