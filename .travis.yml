@@ -16,13 +16,12 @@ install:
   - yarn
   - yarn add --dev mongoose@^$MONGOOSE_VERSION
 script:
-  - yarn hint
-  - yarn test-and-cover
+  - yarn test:all
 jobs:
   include:
   - stage: deploy
     if: env(MONGOOSE_VERSION) = 5
     node_js: "12"
     script:
-      - yarn test-and-cover
+      - yarn test:coverage
       - yarn coveralls
