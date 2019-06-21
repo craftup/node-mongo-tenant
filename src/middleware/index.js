@@ -19,6 +19,7 @@ const middleware = ({schema, options}) => {
     'findOne',
     'findOneAndDelete',
     'findOneAndRemove',
+    'findOneAndReplace',
     'findOneAndUpdate',
     'remove',
     'update',
@@ -30,7 +31,7 @@ const middleware = ({schema, options}) => {
     tenantIdKey,
     tenantIdGetter,
   });
-  ['findOneAndUpdate', 'update'].forEach(operation =>
+  ['findOneAndReplace', 'findOneAndUpdate', 'update'].forEach(operation =>
     schema.pre(operation, protectedAgainstOverwrite)
   );
 
