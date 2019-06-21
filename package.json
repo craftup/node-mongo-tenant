@@ -17,9 +17,12 @@
     "mongo"
   ],
   "scripts": {
-    "hint": "prettier -c src/**/*.js",
-    "test": "jest",
-    "test-and-cover": "jest --coverage",
+    "test": "yarn test:all",
+    "test:all": "yarn test:style && yarn test:coverage && yarn test:integration",
+    "test:style": "prettier -c src/**/*.js",
+    "test:unit": "jest",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest --config ./jest.config.integration.js",
     "coveralls": "coveralls < ./coverage/lcov.info",
     "validate-release-notes": "release-notes validate"
   },
