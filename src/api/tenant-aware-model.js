@@ -44,7 +44,10 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
         },
       });
 
-      return super.aggregate.call(this, pipeline, callback);
+      return super.aggregate.apply(
+        this,
+        callback ? [pipeline, callback] : [pipeline]
+      );
     }
 
     static deleteOne(conditions, callback) {
