@@ -46,7 +46,7 @@ const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
         indexOptions.sparse = true;
       }
 
-      // add partialFilterExpression option if set in options
+      // add partialFilterExpression option if set in options (see issue #21)
       if (pathOptions.partialFilterExpression) {
         indexOptions.partialFilterExpression =
           pathOptions.partialFilterExpression;
