@@ -241,11 +241,10 @@ describe('plugin', () => {
         await model.create({tenantId: 'a'}, {tenantId: 'a'}, {tenantId: 'b'});
 
         await model.byTenant('a').findOneAndDelete({});
-        const remainingDocs = await model.find({});
+        const remainingDocs = await model.find().sort({tenantId: 1});
 
-        expect(remainingDocs).toHaveLength(2);
-        expect(docs[0]).toHaveProperty('tenantId', 'a');
-        expect(docs[1]).toHaveProperty('tenantId', 'b');
+        const objects = remainingDocs.map(doc => doc.toObject());
+        expect(objects).toMatchObject([{tenantId: 'a'}, {tenantId: 'b'}]);
       });
     }
 
@@ -254,11 +253,10 @@ describe('plugin', () => {
       await model.create({tenantId: 'a'}, {tenantId: 'a'}, {tenantId: 'b'});
 
       await model.byTenant('a').findOneAndRemove({});
-      const remainingDocs = await model.find({});
+      const remainingDocs = await model.find().sort({tenantId: 1});
 
-      expect(remainingDocs).toHaveLength(2);
-      expect(remainingDocs[0]).toHaveProperty('tenantId', 'a');
-      expect(remainingDocs[1]).toHaveProperty('tenantId', 'b');
+      const objects = remainingDocs.map(doc => doc.toObject());
+      expect(objects).toMatchObject([{tenantId: 'a'}, {tenantId: 'b'}]);
     });
 
     if (mongooseVersion > '5.4.0') {
@@ -299,11 +297,13 @@ describe('plugin', () => {
       );
 
       await model.byTenant('a').remove({t: 1});
-      const remainingDocs = await model.find();
+      const remainingDocs = await model.find().sort({tenantId: 1});
 
-      expect(remainingDocs).toHaveLength(2);
-      expect(remainingDocs[0].toObject()).toMatchObject({tenantId: 'a', t: 2});
-      expect(remainingDocs[1].toObject()).toMatchObject({tenantId: 'b', t: 1});
+      const objects = remainingDocs.map(doc => doc.toObject());
+      expect(objects).toMatchObject([
+        {tenantId: 'a', t: 2},
+        {tenantId: 'b', t: 1},
+      ]);
     });
 
     it('binds Model.update() to tenant context', async () => {
