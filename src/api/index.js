@@ -13,7 +13,12 @@ module.exports = ({schema, options}) => {
     [accessorMethod]: function(tenantId) {
       if (!cache.has(this.modelName, tenantId)) {
         const base = this.model(this.modelName);
-        const model = createTenantAwareModel({base, tenantId, tenantIdGetter, tenantIdKey});
+        const model = createTenantAwareModel({
+          base,
+          tenantId,
+          tenantIdGetter,
+          tenantIdKey,
+        });
         cache.set(this.modelName, tenantId, model);
       }
       return cache.get(this.modelName, tenantId);
