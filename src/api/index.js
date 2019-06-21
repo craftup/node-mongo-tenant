@@ -6,14 +6,14 @@ const createTenantAwareModel = require('./tenant-aware-model');
  * @param {MongoTenantOptions} options
  */
 module.exports = ({schema, options}) => {
-  const {accessorMethod} = options;
+  const {accessorMethod, tenantIdGetter, tenantIdKey} = options;
   const cache = buildModelCache();
 
   Object.assign(schema.statics, {
     [accessorMethod]: function(tenantId) {
       if (!cache.has(this.modelName, tenantId)) {
         const base = this.model(this.modelName);
-        const model = createTenantAwareModel({base, tenantId});
+        const model = createTenantAwareModel({base, tenantId, tenantIdGetter, tenantIdKey});
         cache.set(this.modelName, tenantId, model);
       }
       return cache.get(this.modelName, tenantId);
