@@ -226,6 +226,13 @@ describe('plugin', () => {
       expect(docs[1]).toHaveProperty('tenantId', 'a');
     });
 
+    it.skip('binds Model.findById() to tenant context', async () => {});
+    if (mongooseVersion >= '5.1.0') {
+      it.skip('binds Model.findByIdAndDelete() to tenant context', async () => {});
+    }
+    it.skip('binds Model.findByIdAndRemove() to tenant context', async () => {});
+    it.skip('binds Model.findByIdAndUpdate() to tenant context', async () => {});
+
     it('binds Model.findOne() to tenant context', async () => {
       const {model} = buildModel();
       await model.create({tenantId: 'a'}, {tenantId: 'a'}, {tenantId: 'b'});
@@ -305,6 +312,10 @@ describe('plugin', () => {
         {tenantId: 'b', t: 1},
       ]);
     });
+
+    if (mongooseVersion >= '4.9.0') {
+      it.skip('binds Model.replaceOne() to tenant context', async () => {});
+    }
 
     it('binds Model.update() to tenant context', async () => {
       const {model} = buildModel({t: Number});
