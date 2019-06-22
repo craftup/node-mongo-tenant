@@ -1,5 +1,4 @@
-const tenantAwareModel = require('./tenant-aware-model');
-const options = require('../options');
+const tenantAwareModel = require('./index');
 
 describe('tenant-aware-model', () => {
   describe('when called with valid parameters', () => {

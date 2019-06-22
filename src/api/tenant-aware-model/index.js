@@ -1,4 +1,5 @@
-const createTenantAwareDb = require('./tenant-aware-db');
+const createTenantAwareDb = require('../tenant-aware-db');
+const parseAggregateArguments = require('./parse-aggregate-arguments');
 
 const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
   class extends base {
@@ -17,26 +18,7 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
      * @return {Mongoose.Aggregate|Promise}
      */
     static aggregate() {
-      // possible structure of arguments:
-      // - [] - nothing
-      // - [{...}] - single pipeline (4.x)
-      // - [{...}, fn] - single pipeline with callback (4.x)
-      // - [{...}, {...}] - multiple pipelines (4.x)
-      // - [{...}, {...}, fn] - multiple pipelines with callback (4.x)
-      // - [[{...}]] - list of pipelines
-      // - [[{...}], fn] - list of pipelines with callback
-
-      const argumentsAsArray = Array.prototype.slice.call(arguments);
-
-      let callback;
-      if (typeof argumentsAsArray[argumentsAsArray.length - 1] === 'function') {
-        callback = argumentsAsArray.pop();
-      }
-
-      const pipeline =
-        argumentsAsArray.length === 1 && Array.isArray(argumentsAsArray[0])
-          ? argumentsAsArray[0]
-          : argumentsAsArray;
+      const {pipeline, callback} = parseAggregateArguments(arguments);
 
       pipeline.unshift({
         $match: {
@@ -44,6 +26,8 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
         },
       });
 
+      // due to 4.x overloading of aggregate it's necessary to be very careful
+      // what to pass as arguments so we pass callback only if its not empty
       return super.aggregate.apply(
         this,
         callback ? [pipeline, callback] : [pipeline]
