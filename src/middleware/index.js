@@ -31,9 +31,13 @@ const middleware = ({schema, options}) => {
     tenantIdKey,
     tenantIdGetter,
   });
-  ['findOneAndReplace', 'findOneAndUpdate', 'update'].forEach(operation =>
-    schema.pre(operation, protectedAgainstOverwrite)
-  );
+  [
+    'findOneAndReplace',
+    'findOneAndUpdate',
+    'update',
+    'updateOne',
+    'updateMany',
+  ].forEach(operation => schema.pre(operation, protectedAgainstOverwrite));
 
   schema.pre('save', buildAddTenantId({tenantIdKey, tenantIdGetter}));
 };
