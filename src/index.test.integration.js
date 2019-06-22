@@ -357,13 +357,54 @@ describe('plugin', () => {
     });
 
     it.skip('protects against override of tenant id in Model.bulkWrite()', async () => {});
-    it.skip('protects against override of tenant id in Model.findOneAndUpdate()', async () => {});
+
+    it('protects against override of tenant id in Model.findOneAndUpdate()', async () => {
+      const {model} = buildModel({});
+      await model.create({tenantId: 'a'});
+
+      await model.byTenant('a').findOneAndUpdate({}, {tenantId: 'b'});
+
+      const docs = await model.find();
+      const objects = docs.map(doc => doc.toObject());
+      expect(objects).toMatchObject([{tenantId: 'a'}]);
+    });
+
     if (mongooseVersion > '5.4.0') {
       it.skip('binds protects against override of tenant id in Model.findOneAndReplace()', () => {});
     }
-    it.skip('protects against override of tenant id in Model.update()', async () => {});
-    it.skip('protects against override of tenant id in Model.updateOne()', async () => {});
-    it.skip('protects against override of tenant id in Model.updateMany()', async () => {});
+
+    it('protects against override of tenant id in Model.update()', async () => {
+      const {model} = buildModel({});
+      await model.create({tenantId: 'a'});
+
+      await model.byTenant('a').update({}, {tenantId: 'b'});
+
+      const docs = await model.find();
+      const objects = docs.map(doc => doc.toObject());
+      expect(objects).toMatchObject([{tenantId: 'a'}]);
+    });
+
+    it('protects against override of tenant id in Model.updateOne()', async () => {
+      const {model} = buildModel({});
+      await model.create({tenantId: 'a'});
+
+      await model.byTenant('a').updateOne({}, {tenantId: 'b'});
+
+      const docs = await model.find();
+      const objects = docs.map(doc => doc.toObject());
+      expect(objects).toMatchObject([{tenantId: 'a'}]);
+    });
+
+    it('protects against override of tenant id in Model.updateMany()', async () => {
+      const {model} = buildModel({});
+      await model.create({tenantId: 'a'});
+
+      await model.byTenant('a').updateMany({}, {tenantId: 'b'});
+
+      const docs = await model.find();
+      const objects = docs.map(doc => doc.toObject());
+      expect(objects).toMatchObject([{tenantId: 'a'}]);
+    });
 
     it.skip('inserts tenant id on save of new document', async () => {});
     it.skip('protects against removal of tenant id on save', async () => {});
