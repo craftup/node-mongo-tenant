@@ -532,8 +532,35 @@ describe('plugin', () => {
       expect(objects).toMatchObject([{tenantId: 'a'}]);
     });
 
-    it.skip('inserts tenant id on save of new document', async () => {});
-    it.skip('protects against removal of tenant id on save', async () => {});
-    it.skip('protects against override of tenant id on save', async () => {});
+    it('inserts tenant id on save of new document', async () => {
+      const {model} = buildModel({});
+      const modelA = model.byTenant('a');
+      const doc = new modelA();
+      await doc.save();
+
+      expect(doc.toObject()).toMatchObject({tenantId: 'a'});
+    });
+
+    it('protects against removal of tenant id on save', async () => {
+      const {model} = buildModel({});
+      const modelA = model.byTenant('a');
+      const doc = new modelA();
+      await doc.save();
+      doc.tenantId = undefined;
+      await doc.save();
+
+      expect(doc.toObject()).toMatchObject({tenantId: 'a'});
+    });
+
+    it('protects against override of tenant id on save', async () => {
+      const {model} = buildModel({});
+      const modelA = model.byTenant('a');
+      const doc = new modelA();
+      await doc.save();
+      doc.tenantId = 'b';
+      await doc.save();
+
+      expect(doc.toObject()).toMatchObject({tenantId: 'a'});
+    });
   });
 });
