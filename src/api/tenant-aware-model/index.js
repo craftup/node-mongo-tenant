@@ -64,7 +64,7 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
       const self = this;
       const tenantId = this[tenantIdGetter]();
 
-      // Model.inserMany supports a single document as parameter
+      // Model.insertMany supports a single document as parameter
       if (!Array.isArray(docs)) {
         docs[tenantIdKey] = tenantId;
       } else {
