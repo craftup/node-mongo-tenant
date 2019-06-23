@@ -121,11 +121,16 @@ describe('plugin', () => {
       expect(results).toEqual([{_id: 'tenant1', sum: 22}]);
     });
 
-    it.skip('binds Model.bulkWrite() to tenant context - not implemented', async () => {
+    it('binds Model.bulkWrite() to tenant context - experimental', async () => {
       const {model} = buildModel({k: Number, v: Number});
       await model.create(
         {tenantId: 'a', k: 1, v: 1},
         {tenantId: 'a', k: 2, v: 1},
+        {tenantId: 'a', k: 3, v: 1},
+        {tenantId: 'a', k: 4, v: 10},
+        {tenantId: 'a', k: 5, v: 10},
+        {tenantId: 'a', k: 6, v: 3},
+        {tenantId: 'a', k: 7, v: 3},
         {tenantId: 'b', k: 1, v: 1}
       );
 
@@ -133,7 +138,7 @@ describe('plugin', () => {
         {
           insertOne: {
             document: {
-              k: 3,
+              k: 8,
               v: 1,
             },
           },
@@ -144,7 +149,17 @@ describe('plugin', () => {
               k: 2,
             },
             update: {
-              v: 2,
+              $set: {v: 2},
+            },
+          },
+        },
+        {
+          updateMany: {
+            filter: {
+              v: 10,
+            },
+            update: {
+              $set: {v: 20},
             },
           },
         },
@@ -155,12 +170,27 @@ describe('plugin', () => {
             },
           },
         },
-        // {replaceOne: {}},
-        // {updateMany: {}},
-        // {deleteMany: {}},
+        {
+          deleteMany: {
+            filter: {
+              v: 3,
+            },
+          },
+        },
+        {
+          replaceOne: {
+            filter: {
+              k: 3,
+            },
+            replacement: {
+              k: 3,
+              v: 2,
+            },
+          },
+        },
       ]);
 
-      const docs = await model.find();
+      const docs = await model.find().sort({tenantId: 1, k: 1});
 
       const objects = docs.map(doc => doc.toObject());
       expect(objects).toMatchObject([
@@ -172,6 +202,21 @@ describe('plugin', () => {
         {
           tenantId: 'a',
           k: 3,
+          v: 2,
+        },
+        {
+          tenantId: 'a',
+          k: 4,
+          v: 20,
+        },
+        {
+          tenantId: 'a',
+          k: 5,
+          v: 20,
+        },
+        {
+          tenantId: 'a',
+          k: 8,
           v: 1,
         },
         {

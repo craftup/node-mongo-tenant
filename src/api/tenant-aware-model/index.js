@@ -1,5 +1,6 @@
 const createTenantAwareDb = require('../tenant-aware-db');
 const parseAggregateArguments = require('./parse-aggregate-arguments');
+const modifyBulkWriteOpertations = require('./modify-bulk-write-operations');
 
 const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
   class extends base {
@@ -80,6 +81,17 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
 
         return callback && callback(null, docs.map(doc => new self(doc)));
       });
+    }
+
+    static bulkWrite(ops, options, callback) {
+      const tenantId = this[tenantIdGetter]();
+      const modifiedOps = modifyBulkWriteOpertations({
+        ops,
+        tenantId,
+        tenantIdKey,
+      });
+
+      return super.bulkWrite(modifiedOps, options, callback);
     }
 
     static get db() {
