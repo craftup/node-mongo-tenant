@@ -1,5 +1,5 @@
 const {Mongoose, Schema, version: mongooseVersion} = require('mongoose');
-const MongoClient = require('mongodb').MongoClient;
+const {MongoClient, ObjectId} = require('mongodb');
 const plugin = require('./index');
 
 const MONGO_URI =
@@ -271,12 +271,82 @@ describe('plugin', () => {
       expect(docs[1]).toHaveProperty('tenantId', 'a');
     });
 
-    it.skip('binds Model.findById() to tenant context', async () => {});
+    it('binds Model.findById() to tenant context', async () => {
+      const {model} = buildModel();
+      const idA = new ObjectId('5d0f607b30ace3beef0beed0');
+      const idB = new ObjectId('5d0f607d30ace3beef0beed1');
+      await model.create({_id: idA, tenantId: 'a'}, {_id: idB, tenantId: 'b'});
+
+      const [docA, docB] = await Promise.all([
+        model.byTenant('a').findById(idA),
+        model.byTenant('b').findById(idA),
+      ]);
+
+      expect(docA).toBeTruthy();
+      expect(docB).toBeNull();
+    });
+
     if (mongooseVersion >= '5.1.0') {
-      it.skip('binds Model.findByIdAndDelete() to tenant context', async () => {});
+      it('binds Model.findByIdAndDelete() to tenant context', async () => {
+        const {model} = buildModel();
+        const idA = new ObjectId('5d0f607b30ace3beef0beed0');
+        const idB = new ObjectId('5d0f607d30ace3beef0beed1');
+        await model.create(
+          {_id: idA, tenantId: 'a'},
+          {_id: idB, tenantId: 'b'}
+        );
+
+        await Promise.all([
+          model.byTenant('a').findByIdAndDelete(idA),
+          model.byTenant('a').findByIdAndDelete(idB),
+        ]);
+
+        const docs = await model.find();
+        const objects = docs.map(doc => doc.toObject());
+
+        expect(objects).toMatchObject([{_id: idB, tenantId: 'b'}]);
+      });
     }
-    it.skip('binds Model.findByIdAndRemove() to tenant context', async () => {});
-    it.skip('binds Model.findByIdAndUpdate() to tenant context', async () => {});
+
+    it('binds Model.findByIdAndRemove() to tenant context', async () => {
+      const {model} = buildModel();
+      const idA = new ObjectId('5d0f607b30ace3beef0beed0');
+      const idB = new ObjectId('5d0f607d30ace3beef0beed1');
+      await model.create({_id: idA, tenantId: 'a'}, {_id: idB, tenantId: 'b'});
+
+      await Promise.all([
+        model.byTenant('a').findByIdAndRemove(idA),
+        model.byTenant('a').findByIdAndRemove(idB),
+      ]);
+
+      const docs = await model.find();
+      const objects = docs.map(doc => doc.toObject());
+
+      expect(objects).toMatchObject([{_id: idB, tenantId: 'b'}]);
+    });
+
+    it('binds Model.findByIdAndUpdate() to tenant context', async () => {
+      const {model} = buildModel({t: Number});
+      const idA = new ObjectId('5d0f607b30ace3beef0beed0');
+      const idB = new ObjectId('5d0f607d30ace3beef0beed1');
+      await model.create(
+        {_id: idA, tenantId: 'a', t: 1},
+        {_id: idB, tenantId: 'b', t: 1}
+      );
+
+      await Promise.all([
+        model.byTenant('a').findByIdAndUpdate(idA, {t: 2}),
+        model.byTenant('a').findByIdAndUpdate(idB, {t: 2}),
+      ]);
+
+      const docs = await model.find().sort({tenantId: 1});
+      const objects = docs.map(doc => doc.toObject());
+
+      expect(objects).toMatchObject([
+        {_id: idA, tenantId: 'a', t: 2},
+        {_id: idB, tenantId: 'b', t: 1},
+      ]);
+    });
 
     it('binds Model.findOne() to tenant context', async () => {
       const {model} = buildModel();
