@@ -7,6 +7,7 @@ const MONGO_URI =
 
 const sleep = milliseconds =>
   new Promise(resolve => setTimeout(resolve, milliseconds));
+
 const resetDb = async () => {
   const db = await MongoClient.connect(MONGO_URI);
   const collections = await db.collections();

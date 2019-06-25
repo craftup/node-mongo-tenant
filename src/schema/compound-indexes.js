@@ -21,6 +21,11 @@ const compoundSchemaLevelUniqueIndexes = ({schema, tenantIdKey}) => {
   });
 };
 
+const removeFieldLevelIndex = path => {
+  path._index = null;
+  delete path.options.unique;
+};
+
 /**
  * Apply tenancy awareness to field level unique indexes
  * @param {object} schema
@@ -32,25 +37,11 @@ const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
 
     // skip if preserveUniqueKey of an unique field is set to true
     if (pathOptions.unique === true && pathOptions.preserveUniqueKey !== true) {
-      // delete the old index
-      path._index = null;
-      delete path.options.unique;
-
       // prepare new options
-      let indexOptions = {
+      const options = {
+        ...(path._index || {}),
         unique: true,
       };
-
-      // add sparse option if set in options
-      if (pathOptions.sparse) {
-        indexOptions.sparse = true;
-      }
-
-      // add partialFilterExpression option if set in options (see issue #21)
-      if (pathOptions.partialFilterExpression) {
-        indexOptions.partialFilterExpression =
-          pathOptions.partialFilterExpression;
-      }
 
       // create a new one that includes the tenant id field
       schema.index(
@@ -58,8 +49,10 @@ const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
           [tenantIdKey]: 1,
           [key]: 1,
         },
-        indexOptions
+        options
       );
+
+      removeFieldLevelIndex(path);
     }
   });
 };
