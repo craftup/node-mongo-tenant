@@ -22,7 +22,7 @@
     "test:style": "prettier -c src/**/*.js",
     "test:unit": "jest",
     "test:coverage": "jest --coverage",
-    "test:integration": "jest --config ./jest.config.integration.js",
+    "test:integration": "jest --config ./jest.config.integration.js --forceExit",
     "coveralls": "coveralls < ./coverage/lcov.info",
     "validate-release-notes": "release-notes validate"
   },
