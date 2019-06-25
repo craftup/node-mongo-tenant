@@ -634,7 +634,7 @@ describe('plugin', () => {
             const indexes = schema.indexes();
             expect(indexes).toContainEqual([
               {id: 1},
-              {unique: true, preserveUniqueKey: true, background: true},
+              {unique: true, background: true},
             ]);
           });
 

@@ -18,7 +18,7 @@ const compoundSchemaLevelUniqueIndexes = ({schema, tenantIdKey}) => {
 
       index[0] = tenantAwareIndex;
     }
-    // remove preserveUniqueKey field to avoid confusing mongodb driver
+    // remove preserveUniqueKey field to avoid confusing mongodb 3.x
     delete index[1].preserveUniqueKey;
   });
 };

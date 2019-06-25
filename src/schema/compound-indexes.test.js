@@ -19,10 +19,7 @@ describe('compound-indexes', () => {
             schema.index({id: 1}, {unique: true, preserveUniqueKey: false});
             compoundIndexes({schema, tenantIdKey});
             expect(schema.indexes()).toEqual([
-              [
-                {id: 1, [tenantIdKey]: 1},
-                {unique: true, preserveUniqueKey: false, background: true},
-              ],
+              [{id: 1, [tenantIdKey]: 1}, {unique: true, background: true}],
             ]);
           });
         });
@@ -32,10 +29,7 @@ describe('compound-indexes', () => {
             schema.index({id: 1}, {unique: true, preserveUniqueKey: true});
             compoundIndexes({schema, tenantIdKey});
             expect(schema.indexes()).toEqual([
-              [
-                {id: 1},
-                {unique: true, preserveUniqueKey: true, background: true},
-              ],
+              [{id: 1}, {unique: true, background: true}],
             ]);
           });
         });
