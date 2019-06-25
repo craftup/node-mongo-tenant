@@ -36,7 +36,9 @@ const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
     const pathOptions = path.options;
 
     // skip if preserveUniqueKey of an unique field is set to true
-    if (pathOptions.unique === true && pathOptions.preserveUniqueKey !== true) {
+    const isUniqueIndex =
+      pathOptions.unique || (pathOptions.index && pathOptions.index.unique);
+    if (isUniqueIndex && pathOptions.preserveUniqueKey !== true) {
       // prepare new options
       const options = {
         ...(path._index || {}),

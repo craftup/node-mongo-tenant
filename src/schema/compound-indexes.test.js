@@ -71,21 +71,22 @@ describe('compound-indexes', () => {
             const schema = new Schema({
               id: {
                 type: String,
-                unique: true,
+                index: {
+                  unique: true,
+                  sparse: true,
+                  partialFilterExpression: {},
+                },
                 preserveUniqueKey: false,
-                sparse: true,
-                partialFilterExpression: {},
               },
             });
             compoundIndexes({schema, tenantIdKey});
-            expect(schema.indexes()).toEqual([
+            expect(schema.indexes()).toMatchObject([
               [
                 {id: 1, [tenantIdKey]: 1},
                 {
                   unique: true,
                   sparse: true,
                   partialFilterExpression: {},
-                  background: true,
                 },
               ],
             ]);
