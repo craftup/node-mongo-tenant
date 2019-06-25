@@ -35,7 +35,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@release-notes/cli": "^0.1.0",
+    "@release-notes/cli": "^0.3.0",
     "coveralls": "^3.0.0",
     "jest": "^24.8.0",
     "mongodb": "^2.2.35",
