@@ -20,6 +20,18 @@ const resetDb = async () => {
   await db.close();
 };
 
+const waitForEvent = ({subject, event, timeout = 250}) =>
+  new Promise((resolve, reject) => {
+    const handle = setTimeout(
+      () => reject(new Error(`Wait for event timed out`)),
+      timeout
+    );
+    subject.on(event, () => {
+      clearTimeout(handle);
+      resolve();
+    });
+  });
+
 describe('plugin', () => {
   describe('with real connection', () => {
     let mongoose;
@@ -562,5 +574,255 @@ describe('plugin', () => {
 
       expect(doc.toObject()).toMatchObject({tenantId: 'a'});
     });
+
+    describe('applied on schema with unique index', () => {
+      describe('on schema level', () => {
+        describe('without preserveUniqueKey option', () => {
+          let schema;
+          let model;
+
+          beforeEach(async () => {
+            schema = new Schema({id: Number});
+            schema.index({id: 1}, {unique: true});
+            schema.plugin(plugin);
+            model = mongoose.model('model', schema);
+
+            await waitForEvent({subject: model, event: 'index'});
+          });
+
+          it('modifies index properly', async () => {
+            const indexes = schema.indexes();
+            expect(indexes).toContainEqual([
+              {id: 1, tenantId: 1},
+              {unique: true, background: true},
+            ]);
+          });
+
+          it('allows inserting same unique value for different tenants', async () => {
+            const docs = await model.create([
+              {id: 1, tenantId: 'a'},
+              {id: 1, tenantId: 'b'},
+            ]);
+            expect(docs).toHaveLength(2);
+          });
+
+          it('prevents inserting same unique value for same tenant', () => {
+            const promise = model.create([
+              {id: 1, tenantId: 'a'},
+              {id: 1, tenantId: 'a'},
+            ]);
+            return expect(promise).rejects.toThrow();
+          });
+        });
+
+        describe('with preserveUniqueKey set to `true`', () => {
+          let schema;
+          let model;
+
+          beforeEach(async () => {
+            schema = new Schema({id: Number});
+            schema.index({id: 1}, {unique: true, preserveUniqueKey: true});
+            schema.plugin(plugin);
+            model = mongoose.model('model', schema);
+
+            await waitForEvent({subject: model, event: 'index'});
+          });
+
+          it('keeps index intact', () => {
+            const indexes = schema.indexes();
+            expect(indexes).toContainEqual([
+              {id: 1},
+              {unique: true, preserveUniqueKey: true, background: true},
+            ]);
+          });
+
+          it('prevents inserting same unique value for different tenants', () => {
+            const promise = model.create([
+              {id: 1, tenantId: 'a'},
+              {id: 1, tenantId: 'b'},
+            ]);
+            return expect(promise).rejects.toThrow();
+          });
+
+          it('prevents inserting same unique value for same tenant', () => {
+            const promise = model.create([
+              {id: 1, tenantId: 'a'},
+              {id: 1, tenantId: 'a'},
+            ]);
+            return expect(promise).rejects.toThrow();
+          });
+        });
+
+        describe('with all known mongodb index options set', () => {
+          let schema;
+          let indexes;
+          let idIndex;
+          let idIndexOptions;
+
+          beforeEach(async () => {
+            schema = new Schema({id: Number});
+            schema.index(
+              {id: 1},
+              {
+                background: false,
+                expireAfterSeconds: 600,
+                dropDups: true,
+                min: 5,
+                max: 23,
+                name: 'id_with_options',
+                partialFilterExpression: {id: {$gt: 0}},
+                sparse: true,
+                v: 1,
+              }
+            );
+            schema.plugin(plugin);
+            indexes = schema.indexes();
+            idIndex = indexes.reduce(
+              (matchedIndex, currentIndex) =>
+                matchedIndex ||
+                (currentIndex[0].id === 1 ? currentIndex : null),
+              null
+            );
+            idIndexOptions = idIndex[1];
+          });
+
+          it.each([
+            ['background', false],
+            ['expireAfterSeconds', 600],
+            ['dropDups', true],
+            ['min', 5],
+            ['max', 23],
+            ['name', 'id_with_options'],
+            ['partialFilterExpression', {id: {$gt: 0}}],
+            ['sparse', true],
+            ['v', 1],
+          ])('preserves the %s option', (key, value) => {
+            expect(idIndexOptions).toHaveProperty(key, value);
+          });
+        });
+      });
+
+      describe('on field level', () => {
+        describe('without preserveUniqueKey option', () => {
+          let schema;
+          let model;
+
+          beforeEach(async () => {
+            ({schema, model} = buildModel({id: {type: Number, unique: true}}));
+            await waitForEvent({subject: model, event: 'index'});
+          });
+
+          it('modifies index properly', () => {
+            const indexes = schema.indexes();
+            expect(indexes).toContainEqual([
+              {id: 1, tenantId: 1},
+              {unique: true, background: true},
+            ]);
+          });
+
+          it('allows inserting same unique value for different tenants', async () => {
+            const docs = await model.create([
+              {id: 1, tenantId: 'a'},
+              {id: 1, tenantId: 'b'},
+            ]);
+            expect(docs).toHaveLength(2);
+          });
+
+          it('prevents inserting same unique value for same tenant', () => {
+            const promise = model.create([
+              {id: 1, tenantId: 'a'},
+              {id: 1, tenantId: 'a'},
+            ]);
+            return expect(promise).rejects.toThrow();
+          });
+        });
+
+        describe('with preserveUniqueKey set to `true`', () => {
+          let schema;
+          let model;
+
+          beforeEach(async () => {
+            ({schema, model} = buildModel({
+              id: {type: Number, unique: true, preserveUniqueKey: true},
+            }));
+            await waitForEvent({subject: model, event: 'index'});
+          });
+
+          it('keeps index intact', () => {
+            const indexes = schema.indexes();
+            expect(indexes).toContainEqual([
+              {id: 1},
+              {unique: true, background: true},
+            ]);
+          });
+
+          it('prevents inserting same unique value for different tenants', () => {
+            const promise = model.create([
+              {id: 1, tenantId: 'a'},
+              {id: 1, tenantId: 'b'},
+            ]);
+            return expect(promise).rejects.toThrow();
+          });
+
+          it('prevents inserting same unique value for same tenant', () => {
+            const promise = model.create([
+              {id: 1, tenantId: 'a'},
+              {id: 1, tenantId: 'a'},
+            ]);
+            return expect(promise).rejects.toThrow();
+          });
+        });
+      });
+
+      describe('with all known mongodb index options set', () => {
+        let schema;
+        let indexes;
+        let idIndex;
+        let idIndexOptions;
+
+        beforeEach(async () => {
+          schema = new Schema({
+            id: {
+              type: Number,
+              index: {
+                background: false,
+                expireAfterSeconds: 600,
+                dropDups: true,
+                min: 5,
+                max: 23,
+                name: 'id_with_options',
+                partialFilterExpression: {id: {$gt: 0}},
+                sparse: true,
+                v: 1,
+              },
+            },
+          });
+          schema.plugin(plugin);
+          indexes = schema.indexes();
+          idIndex = indexes.reduce(
+            (matchedIndex, currentIndex) =>
+              matchedIndex || (currentIndex[0].id === 1 ? currentIndex : null),
+            null
+          );
+          idIndexOptions = idIndex[1];
+        });
+
+        it.each([
+          ['background', false],
+          ['expireAfterSeconds', 600],
+          ['dropDups', true],
+          ['min', 5],
+          ['max', 23],
+          ['name', 'id_with_options'],
+          ['partialFilterExpression', {id: {$gt: 0}}],
+          ['sparse', true],
+          ['v', 1],
+        ])('preserves the %s option', (key, value) => {
+          expect(idIndexOptions).toHaveProperty(key, value);
+        });
+      });
+    });
+
+    it.skip('it properly binds populated sub models', () => {});
   });
 });
