@@ -9,7 +9,8 @@ const sleep = milliseconds =>
   new Promise(resolve => setTimeout(resolve, milliseconds));
 
 const resetDb = async () => {
-  const db = await MongoClient.connect(MONGO_URI);
+  const client = await MongoClient.connect(MONGO_URI);
+  const db = client.db();
   const collections = await db.collections();
   await Promise.all(
     collections
@@ -18,7 +19,7 @@ const resetDb = async () => {
       )
       .map(collection => collection.drop())
   );
-  await db.close();
+  await client.close();
 };
 
 const waitForEvent = ({subject, event, timeout = 250}) =>
