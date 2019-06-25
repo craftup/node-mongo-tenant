@@ -774,53 +774,59 @@ describe('plugin', () => {
             return expect(promise).rejects.toThrow();
           });
         });
-      });
 
-      describe('with all known mongodb index options set', () => {
-        let schema;
-        let indexes;
-        let idIndex;
-        let idIndexOptions;
+        describe('with all known mongodb index options set', () => {
+          let schema;
+          let indexes;
+          let idIndex;
+          let idIndexOptions;
 
-        beforeEach(async () => {
-          schema = new Schema({
-            id: {
-              type: Number,
-              index: {
-                background: false,
-                expireAfterSeconds: 600,
-                dropDups: true,
-                min: 5,
-                max: 23,
-                name: 'id_with_options',
-                partialFilterExpression: {id: {$gt: 0}},
-                sparse: true,
-                v: 1,
+          beforeEach(async () => {
+            schema = new Schema({
+              id: {
+                type: Number,
+                index: {
+                  background: false,
+                  expireAfterSeconds: 600,
+                  dropDups: true,
+                  min: 5,
+                  max: 23,
+                  name: 'id_with_options',
+                  partialFilterExpression: {id: {$gt: 0}},
+                  sparse: true,
+                  unique: true,
+                  v: 1,
+                },
               },
-            },
-          });
-          schema.plugin(plugin);
-          indexes = schema.indexes();
-          idIndex = indexes.reduce(
-            (matchedIndex, currentIndex) =>
-              matchedIndex || (currentIndex[0].id === 1 ? currentIndex : null),
-            null
-          );
-          idIndexOptions = idIndex[1];
-        });
+            });
+            schema.plugin(plugin);
+            indexes = schema.indexes();
+            idIndex = indexes.reduce(
+              (matchedIndex, currentIndex) =>
+                matchedIndex ||
+                (currentIndex[0].id === 1 ? currentIndex : null),
+              null
+            );
+            idIndexOptions = idIndex[1];
 
-        it.each([
-          ['background', false],
-          ['expireAfterSeconds', 600],
-          ['dropDups', true],
-          ['min', 5],
-          ['max', 23],
-          ['name', 'id_with_options'],
-          ['partialFilterExpression', {id: {$gt: 0}}],
-          ['sparse', true],
-          ['v', 1],
-        ])('preserves the %s option', (key, value) => {
-          expect(idIndexOptions).toHaveProperty(key, value);
+            if (!idIndex || !idIndexOptions) {
+              throw new Error('Unexpected setup result');
+            }
+          });
+
+          it.each([
+            ['background', false],
+            ['expireAfterSeconds', 600],
+            ['dropDups', true],
+            ['min', 5],
+            ['max', 23],
+            ['name', 'id_with_options'],
+            ['partialFilterExpression', {id: {$gt: 0}}],
+            ['sparse', true],
+            ['v', 1],
+          ])('preserves the %s option', (key, value) => {
+            expect(idIndexOptions).toHaveProperty(key, value);
+          });
         });
       });
     });

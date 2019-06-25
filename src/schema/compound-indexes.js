@@ -21,6 +21,21 @@ const compoundSchemaLevelUniqueIndexes = ({schema, tenantIdKey}) => {
   });
 };
 
+const shouldPreserveUniqueIndex = options => {
+  if (
+    options &&
+    options.index &&
+    options.index.preserveUniqueKey !== undefined
+  ) {
+    return options.index.preserveUniqueKey === true;
+  }
+  if (options && options.preserveUniqueKey !== undefined) {
+    return options.preserveUniqueKey === true;
+  }
+
+  return false;
+};
+
 const removeFieldLevelIndex = path => {
   path._index = null;
   delete path.options.unique;
@@ -34,14 +49,15 @@ const removeFieldLevelIndex = path => {
 const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
   schema.eachPath((key, path) => {
     const pathOptions = path.options;
+    const indexOptions = path._index;
 
     // skip if preserveUniqueKey of an unique field is set to true
     const isUniqueIndex =
-      pathOptions.unique || (pathOptions.index && pathOptions.index.unique);
-    if (isUniqueIndex && pathOptions.preserveUniqueKey !== true) {
+      (indexOptions && indexOptions.unique) || pathOptions.unique;
+    if (isUniqueIndex && !shouldPreserveUniqueIndex(pathOptions)) {
       // prepare new options
-      const options = {
-        ...(path._index || {}),
+      const schemaIndexOptions = {
+        ...(indexOptions || {}),
         unique: true,
       };
 
@@ -51,7 +67,7 @@ const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
           [tenantIdKey]: 1,
           [key]: 1,
         },
-        options
+        schemaIndexOptions
       );
 
       removeFieldLevelIndex(path);
