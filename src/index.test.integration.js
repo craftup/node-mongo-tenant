@@ -446,10 +446,19 @@ describe('plugin', () => {
 
     it('binds Model.insertMany() to tenant context', async () => {
       const {model} = buildModel({t: Number});
-      await model.byTenant('a').insertMany([{t: 1}, {t: 2}]);
+      const insertedDocs = await model
+        .byTenant('a')
+        .insertMany([{t: 1}, {t: 2}]);
+      const allDocs = await model.find().sort({t: 1});
 
-      const docs = await model.find().sort({t: 1});
-      expect(docs).toMatchObject([
+      expect(insertedDocs).toHaveLength(2);
+      expect(insertedDocs[0].hasTenantContext).toBeTruthy();
+      expect(insertedDocs[1].hasTenantContext).toBeTruthy();
+      expect(insertedDocs.map(doc => doc.toObject())).toMatchObject([
+        {tenantId: 'a', t: 1},
+        {tenantId: 'a', t: 2},
+      ]);
+      expect(allDocs).toMatchObject([
         {tenantId: 'a', t: 1},
         {tenantId: 'a', t: 2},
       ]);
