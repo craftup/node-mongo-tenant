@@ -6,7 +6,7 @@ const createTenantAwareModel = require('./tenant-aware-model');
  * @param {MongoTenantOptions} options
  */
 module.exports = ({schema, options}) => {
-  const {accessorMethod, tenantIdGetter, tenantIdKey} = options;
+  const {accessorMethod} = options;
   const cache = buildModelCache();
 
   Object.assign(schema.statics, {
@@ -16,8 +16,7 @@ module.exports = ({schema, options}) => {
         const model = createTenantAwareModel({
           base,
           tenantId,
-          tenantIdGetter,
-          tenantIdKey,
+          options,
         });
         cache.set(this.modelName, tenantId, model);
       }

@@ -156,11 +156,12 @@ const createModel = ({
   return model;
 };
 
-module.exports = ({base, tenantId, tenantIdGetter, tenantIdKey}) => {
+module.exports = ({base, options, tenantId}) => {
+  const {tenantIdGetter, tenantIdKey} = options;
   const db = createTenantAwareDb({
     db: base.db,
     tenantId,
-    options: {tenantIdGetter, tenantIdKey},
+    options,
   });
 
   const config = {

@@ -37,11 +37,13 @@ const waitForEvent = ({subject, event, timeout = 250}) =>
 describe('plugin', () => {
   describe('with real connection', () => {
     let mongoose;
+    let modelCounter;
 
     const buildModel = (schemaSpec = {}, options = {}) => {
       const schema = new Schema(schemaSpec);
       schema.plugin(plugin, options);
-      const model = mongoose.model('model', schema);
+      const model = mongoose.model(`model${modelCounter}`, schema);
+      modelCounter += 1;
       return {schema, model};
     };
 
@@ -49,6 +51,8 @@ describe('plugin', () => {
       await resetDb();
 
       mongoose = new Mongoose();
+      modelCounter = 0;
+
       if (mongooseVersion < '5.0.0') {
         await mongoose.connect(MONGO_URI, {useMongoClient: true});
       } else {
@@ -831,6 +835,165 @@ describe('plugin', () => {
       });
     });
 
-    it.skip('it properly binds populated sub models', () => {});
+    describe('applied on schema with sub schema', () => {
+      describe('where sub schema is without tenant level', () => {
+        it('should pass down tenant context on Model.find().populate()', async () => {
+          const subModel = mongoose.model(
+            'subModel',
+            new Schema({tenantId: String})
+          );
+          const {model} = buildModel({
+            children: [{type: Schema.Types.ObjectId, ref: subModel.modelName}],
+          });
+
+          const subDocs = await subModel.create([
+            {tenantId: 'a'},
+            {tenantId: 'b'},
+          ]);
+          await model.create({
+            tenantId: 'a',
+            children: subDocs.map(doc => doc._id),
+          });
+          const docs = await model
+            .byTenant('a')
+            .find()
+            .populate({path: 'children', options: {sort: {tenantId: 1}}});
+          const objects = docs.map(doc => doc.toObject());
+
+          expect(objects).toHaveLength(1);
+          expect(objects[0]).toMatchObject({
+            tenantId: 'a',
+            children: [
+              {
+                tenantId: 'a',
+              },
+              {
+                tenantId: 'b',
+              },
+            ],
+          });
+          expect(docs[0].children[0].hasTenantContext).toBeUndefined();
+          expect(docs[0].children[1].hasTenantContext).toBeUndefined();
+        });
+      });
+
+      describe('where sub schema has same tenant level', () => {
+        it('should pass down tenant context on Model.find().populate()', async () => {
+          const {model: subModel} = buildModel({});
+          const {model} = buildModel({
+            children: [{type: Schema.Types.ObjectId, ref: subModel.modelName}],
+          });
+
+          const subDocs = await subModel.create([
+            {tenantId: 'a'},
+            {tenantId: 'b'},
+          ]);
+          await model.create({
+            tenantId: 'a',
+            children: subDocs.map(doc => doc._id),
+          });
+          const docs = await model
+            .byTenant('a')
+            .find()
+            .populate({path: 'children', options: {sort: {tenantId: 1}}});
+          const objects = docs.map(doc => doc.toObject());
+
+          expect(objects).toHaveLength(1);
+          expect(objects[0].children).toHaveLength(1);
+          expect(objects[0]).toMatchObject({
+            tenantId: 'a',
+            children: [
+              {
+                tenantId: 'a',
+              },
+            ],
+          });
+          expect(docs[0].children[0].hasTenantContext).toBeTruthy();
+        });
+      });
+
+      describe('where sub schema has different tenant level', () => {
+        it('should not pass down tenant context on Model.find().populate()', async () => {
+          const {model: subModel} = buildModel(
+            {},
+            {
+              tenantIdKey: 'dimension',
+              tenantIdGetter: 'getDimension',
+              accessorMethod: 'byDimension',
+            }
+          );
+          const {model} = buildModel({
+            children: [{type: Schema.Types.ObjectId, ref: subModel.modelName}],
+          });
+
+          const subDocs = await subModel.create([
+            {dimension: 'a'},
+            {dimension: 'b'},
+          ]);
+          await model.create({
+            tenantId: 'a',
+            children: subDocs.map(doc => doc._id),
+          });
+          const docs = await model
+            .byTenant('a')
+            .find()
+            .populate({path: 'children', options: {sort: {dimension: 1}}});
+          const objects = docs.map(doc => doc.toObject());
+
+          expect(objects).toHaveLength(1);
+          expect(objects[0].children).toHaveLength(2);
+          expect(objects[0]).toMatchObject({
+            tenantId: 'a',
+            children: [
+              {
+                dimension: 'a',
+              },
+              {
+                dimension: 'b',
+              },
+            ],
+          });
+          expect(docs[0].children[0].hasTenantContext).toBeUndefined();
+          expect(docs[0].children[1].hasTenantContext).toBeUndefined();
+        });
+      });
+    });
+
+    describe('applied on schema with discriminators', () => {
+      let schema;
+      let model;
+
+      beforeEach(() => {
+        ({model, schema} = buildModel({kind: String}));
+        schema = new Schema({kind: String}, {discriminatorKey: 'kind'});
+        schema.plugin(plugin);
+        model = mongoose.model(`discModel`, schema);
+      });
+
+      it('adds tenant to all discriminators of a model', async () => {
+        model.discriminator('test', new Schema({inherit: Boolean}));
+        const doc = await model
+          .byTenant('a')
+          .create({kind: 'test', inherit: true});
+
+        expect(doc.toObject()).toMatchObject({
+          tenantId: 'a',
+          kind: 'test',
+          inherit: true,
+        });
+      });
+
+      it('inherit properties from Model when using discriminator', async () => {
+        const {model: testModel} = buildModel({inherit: Boolean});
+        model.discriminator('test', testModel.schema);
+
+        const doc = await testModel.byTenant('a').create({inherit: true});
+        expect(doc.toObject()).toMatchObject({
+          tenantId: 'a',
+          kind: 'test',
+          inherit: true,
+        });
+      });
+    });
   });
 });
