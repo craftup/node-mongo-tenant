@@ -60,7 +60,12 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
       return super.remove(conditions, callback);
     }
 
-    static insertMany(docs, callback) {
+    static insertMany(docs, options, callback) {
+      if (typeof options === 'function') {
+        callback = options;
+        options = null;
+      }
+
       const self = this;
       const tenantId = this[tenantIdGetter]();
 
@@ -73,14 +78,15 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
         });
       }
 
+      const promise = super.insertMany(docs, options);
       // ensure the returned docs are instanced of the bound multi tenant model
-      return super.insertMany(docs, (err, docs) => {
-        if (err) {
-          return callback && callback(err);
-        }
+      promise.then(docs => docs.map(doc => new self(doc)));
 
-        return callback && callback(null, docs.map(doc => new self(doc)));
-      });
+      if (!callback) {
+        return promise;
+      }
+
+      promise.then(docs => callback(null, docs), err => callback(err));
     }
 
     static bulkWrite(ops, options, callback) {

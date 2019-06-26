@@ -444,6 +444,17 @@ describe('plugin', () => {
       });
     });
 
+    it('binds Model.insertMany() to tenant context', async () => {
+      const {model} = buildModel({t: Number});
+      await model.byTenant('a').insertMany([{t: 1}, {t: 2}]);
+
+      const docs = await model.find().sort({t: 1});
+      expect(docs).toMatchObject([
+        {tenantId: 'a', t: 1},
+        {tenantId: 'a', t: 2},
+      ]);
+    });
+
     it('binds Model.remove() to tenant context', async () => {
       const {model} = buildModel({t: Number});
       await model.create(
