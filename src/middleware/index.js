@@ -22,6 +22,7 @@ const middleware = ({schema, options}) => {
     'findOneAndReplace',
     'findOneAndUpdate',
     'remove',
+    'replaceOne',
     'update',
     'updateOne',
     'updateMany',
@@ -34,6 +35,7 @@ const middleware = ({schema, options}) => {
   [
     'findOneAndReplace',
     'findOneAndUpdate',
+    'replaceOne',
     'update',
     'updateOne',
     'updateMany',

@@ -399,8 +399,24 @@ describe('plugin', () => {
       expect(objects).toMatchObject([{tenantId: 'a'}, {tenantId: 'b'}]);
     });
 
-    if (mongooseVersion > '5.4.0') {
-      it.skip('binds Model.findOneAndReplace() to tenant context', () => {});
+    if (mongooseVersion >= '5.4.0') {
+      it('binds Model.findOneAndReplace() to tenant context', async () => {
+        const {model} = buildModel({k: Number, v: Number});
+        await model.create(
+          {tenantId: 'a', k: 1, v: 1},
+          {tenantId: 'b', k: 1, v: 1}
+        );
+
+        await model
+          .byTenant('b')
+          .findOneAndReplace({k: 1}, {tenantId: 'b', k: 2, v: 2});
+        const docs = await model.find().sort({tenantId: 1});
+
+        expect(docs).toMatchObject([
+          {tenantId: 'a', k: 1, v: 1},
+          {tenantId: 'b', k: 2, v: 2},
+        ]);
+      });
     }
 
     it('binds Model.findOneAndUpdate() to tenant context', async () => {
@@ -447,7 +463,23 @@ describe('plugin', () => {
     });
 
     if (mongooseVersion >= '4.9.0') {
-      it.skip('binds Model.replaceOne() to tenant context', async () => {});
+      it('binds Model.replaceOne() to tenant context', async () => {
+        const {model} = buildModel({k: Number, v: Number});
+        await model.create(
+          {tenantId: 'a', k: 1, v: 1},
+          {tenantId: 'b', k: 1, v: 1}
+        );
+
+        await model
+          .byTenant('b')
+          .replaceOne({k: 1}, {tenantId: 'b', k: 2, v: 2});
+        const docs = await model.find().sort({tenantId: 1});
+
+        expect(docs).toMatchObject([
+          {tenantId: 'a', k: 1, v: 1},
+          {tenantId: 'b', k: 2, v: 2},
+        ]);
+      });
     }
 
     it('binds Model.update() to tenant context', async () => {
@@ -513,8 +545,40 @@ describe('plugin', () => {
       expect(objects).toMatchObject([{tenantId: 'a'}]);
     });
 
-    if (mongooseVersion > '5.4.0') {
-      it.skip('binds protects against override of tenant id in Model.findOneAndReplace()', () => {});
+    if (mongooseVersion >= '5.4.0') {
+      it('protects against override of tenant id in Model.findOneAndReplace()', async () => {
+        const {model} = buildModel({k: Number, v: Number});
+        await model.create(
+          {tenantId: 'a', k: 1, v: 1},
+          {tenantId: 'b', k: 1, v: 1}
+        );
+
+        await model.byTenant('b').findOneAndReplace({k: 1}, {k: 2, v: 2});
+        const docs = await model.find().sort({tenantId: 1});
+
+        expect(docs).toMatchObject([
+          {tenantId: 'a', k: 1, v: 1},
+          {tenantId: 'b', k: 2, v: 2},
+        ]);
+      });
+    }
+
+    if (mongooseVersion >= '4.9.0') {
+      it('protects against override of tenant id in Model.replaceOne()', async () => {
+        const {model} = buildModel({k: Number, v: Number});
+        await model.create(
+          {tenantId: 'a', k: 1, v: 1},
+          {tenantId: 'b', k: 1, v: 1}
+        );
+
+        await model.byTenant('b').replaceOne({k: 1}, {k: 2, v: 2});
+        const docs = await model.find().sort({tenantId: 1});
+
+        expect(docs).toMatchObject([
+          {tenantId: 'a', k: 1, v: 1},
+          {tenantId: 'b', k: 2, v: 2},
+        ]);
+      });
     }
 
     it('protects against override of tenant id in Model.update()', async () => {
