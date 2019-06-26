@@ -1,4 +1,5 @@
 const tenantAwareModel = require('./index');
+const buildOptions = require('../../options');
 
 describe('tenant-aware-model', () => {
   describe('when called with valid parameters', () => {
@@ -16,7 +17,11 @@ describe('tenant-aware-model', () => {
     let model;
     beforeEach(() => {
       base = buildBaseModel();
-      model = tenantAwareModel({base, tenantId, tenantIdGetter, tenantIdKey});
+      model = tenantAwareModel({
+        base,
+        options: buildOptions({tenantIdGetter, tenantIdKey}),
+        tenantId,
+      });
     });
 
     it('builds a model', () => {
@@ -28,7 +33,11 @@ describe('tenant-aware-model', () => {
       base.discriminators = {
         test: class {},
       };
-      model = tenantAwareModel({base, tenantId, tenantIdGetter, tenantIdKey});
+      model = tenantAwareModel({
+        base,
+        options: buildOptions({tenantIdGetter, tenantIdKey}),
+        tenantId,
+      });
       expect(model).toHaveProperty('discriminators.test');
       expect(model.discriminators.test).not.toBe(base.discriminators.test);
     });
