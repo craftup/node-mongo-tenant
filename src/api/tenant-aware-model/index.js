@@ -78,15 +78,21 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
         });
       }
 
-      const promise = super.insertMany(docs, options);
+      const promise = options
+        ? super.insertMany(docs, options)
+        : super.insertMany(docs);
       // ensure the returned docs are instanced of the bound multi tenant model
-      promise.then(docs => docs.map(doc => new self(doc)));
+      promise.then(result =>
+        Array.isArray(result)
+          ? result.map(doc => new self(doc))
+          : new self(result)
+      );
 
       if (!callback) {
         return promise;
       }
 
-      promise.then(docs => callback(null, docs), err => callback(err));
+      promise.then(result => callback(null, result), err => callback(err));
     }
 
     static bulkWrite(ops, options, callback) {

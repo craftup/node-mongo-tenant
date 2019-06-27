@@ -175,9 +175,9 @@ describe('tenant-aware-model', () => {
       });
 
       describe('overrides static insertMany which', () => {
-        it('applies tenant context on single document', () => {
-          base.insertMany = jest.fn();
-          model.insertMany({}, undefined);
+        it('applies tenant context on single document', async () => {
+          base.insertMany = jest.fn(() => Promise.resolve({}));
+          await model.insertMany({}, undefined);
 
           expect(base.insertMany).toHaveBeenCalledTimes(1);
           expect(base.insertMany.mock.calls[0][0]).toEqual({
@@ -185,9 +185,9 @@ describe('tenant-aware-model', () => {
           });
         });
 
-        it('applies tenant context on multiple documents', () => {
-          base.insertMany = jest.fn();
-          model.insertMany([{}], undefined);
+        it('applies tenant context on multiple documents', async () => {
+          base.insertMany = jest.fn(() => Promise.resolve([{}]));
+          await model.insertMany([{}], undefined);
 
           expect(base.insertMany).toHaveBeenCalledTimes(1);
           expect(base.insertMany.mock.calls[0][0]).toEqual([
@@ -196,9 +196,7 @@ describe('tenant-aware-model', () => {
         });
 
         it('builds tenant aware models for callback', done => {
-          base.insertMany = (docs, callback) => {
-            callback(null, docs);
-          };
+          base.insertMany = docs => Promise.resolve(docs);
           const newDoc = new model();
           model.insertMany([newDoc], (err, docs) => {
             expect(err).toBe(null);
@@ -215,9 +213,7 @@ describe('tenant-aware-model', () => {
 
         it('forwards errors', done => {
           const expectedError = new Error('test');
-          base.insertMany = (docs, callback) => {
-            callback(expectedError);
-          };
+          base.insertMany = () => Promise.reject(expectedError);
           model.insertMany([], (err, docs) => {
             expect(err).toBe(expectedError);
             expect(docs).toBe(undefined);
