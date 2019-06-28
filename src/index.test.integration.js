@@ -678,6 +678,7 @@ describe('plugin', () => {
             model = mongoose.model('model', schema);
 
             await waitForEvent({subject: model, event: 'index'});
+            await sleep(10);
           });
 
           it('modifies index properly', async () => {
