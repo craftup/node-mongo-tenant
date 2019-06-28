@@ -195,9 +195,20 @@ describe('tenant-aware-model', () => {
           ]);
         });
 
+        it('builds tenant aware models for promise', async () => {
+          base.insertMany = docs => Promise.resolve(docs);
+          const newDocs = [{}];
+          const insertedDocs = await model.insertMany(newDocs);
+
+          expect(insertedDocs).toHaveLength(1);
+          expect(insertedDocs[0]).toBeInstanceOf(model);
+          expect(insertedDocs[0].hasTenantContext).toBe(true);
+          expect(insertedDocs[0][tenantIdGetter]()).toBe(tenantId);
+        });
+
         it('builds tenant aware models for callback', done => {
           base.insertMany = docs => Promise.resolve(docs);
-          const newDoc = new model();
+          const newDoc = {};
           model.insertMany([newDoc], (err, docs) => {
             expect(err).toBe(null);
             expect(docs).toHaveLength(1);
