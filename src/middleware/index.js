@@ -1,14 +1,16 @@
 const buildAddTenantId = require('./document/add-tenant-id');
 const buildProtectAgainstTenantOverwrite = require('./query/protect-against-tenant-overwrite');
 const buildRestrictToTenant = require('./query/restrict-to-tenant');
+const sanitizeOptions = require('../options');
 
 /**
- *
- * @param {object} schema
- * @param {MongoTenantOptions} options
+ * Tenant middleware plugin
+ * @param {Mongoose.Schema} schema Schema to extend
+ * @param {MongoTenantOptions} [options] Options (optional)
  */
-const middleware = ({schema, options}) => {
-  const {tenantIdKey, tenantIdGetter} = options;
+const middleware = (schema, options) => {
+  const sanitizedOptions = sanitizeOptions(options || {});
+  const {tenantIdKey, tenantIdGetter} = sanitizedOptions;
 
   const restrictToTenant = buildRestrictToTenant({tenantIdKey, tenantIdGetter});
   [

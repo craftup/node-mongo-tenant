@@ -9,7 +9,7 @@ describe('api', () => {
     const options = buildOptions({accessorMethod: 'byTenant'});
     beforeEach(() => {
       schema = new Schema({});
-      api({schema, options});
+      api(schema, options);
     });
 
     describe('adds static accessor method which', () => {
