@@ -10,10 +10,15 @@ releases:
 - version: Unreleased
   added:
     - 'Full support of path level index options (`new Schema({t: {type: String, index: {...}})`).'
+  changed:
+    - >
+      **BREAKING** Default value of option to make tenant id required is now `true` instead of `false`. This changes the
+      default behaviour.
   removed:
-    - 'Schema types no longer support the shorthand `partialFilterExpression` option. That shorthand option was never
-      supported by mongoose in the first place. If that option is needed please use
-      `{..., index: { partialFilterExpression: ...}}` instead.'
+    - >
+      **BREAKING** Schema types no longer support the shorthand `partialFilterExpression` option. That shorthand option
+      was never supported by mongoose in the first place. If that option is needed please use
+      `{..., index: { partialFilterExpression: ...}}` instead.
 - version: 1.6.0
   date: 2019-03-21
   fixed:

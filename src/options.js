@@ -22,7 +22,8 @@ const options = (input = {}) => ({
   tenantIdType: input.tenantIdType || String,
   accessorMethod: input.accessorMethod || 'byTenant',
   tenantIdGetter: input.tenantIdGetter || 'getTenantId',
-  requireTenantId: input.requireTenantId === true,
+  requireTenantId:
+    input.requireTenantId === undefined ? true : input.requireTenantId && true,
 });
 
 module.exports = options;

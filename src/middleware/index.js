@@ -43,7 +43,11 @@ const middleware = (schema, options) => {
     'updateMany',
   ].forEach(operation => schema.pre(operation, protectedAgainstOverwrite));
 
-  schema.pre('save', buildAddTenantId({tenantIdKey, tenantIdGetter}));
+  // First `save` pre hook fired will be the mongoose default validation plugin.
+  // So if we add `tenantId` on a subsequent `save` pre hook the validation will
+  // always fail (given `tenantId` is required but not set). So we have to
+  // ensure right `tenantId` on validate.
+  schema.pre('validate', buildAddTenantId({tenantIdKey, tenantIdGetter}));
 };
 
 module.exports = middleware;
