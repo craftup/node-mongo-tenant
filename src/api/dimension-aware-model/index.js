@@ -4,6 +4,8 @@ const modifyBulkWriteOpertations = require('./modify-bulk-write-operations');
 const parseAggregateArguments = require('./parse-aggregate-arguments');
 const symbolDimensions = require('../../symbol-dimensions');
 
+const symbolMongooseModelCollection = Symbol.for('mongoose#Model#collection');
+
 const createPlainModel = ({
   base,
   db,
@@ -158,6 +160,48 @@ const createDiscriminatorModels = ({model, base, createModel}) => {
 /**
  *
  * @param {Mongoose.Model} base
+ * @param {*} dimensionId
+ * @param {MongoTenantOptions} options
+ */
+const renderCollectionName = ({base, dimensionId, options}) => {
+  const {collection, dimension, dimensionIdKey} = options;
+  if (typeof collection === 'function') {
+    const provider = collection;
+    const rendered = provider({
+      model: base,
+      dimension,
+      dimensionId,
+    });
+    if (typeof rendered !== 'string') {
+      throw new Error(
+        'MongoTenant: collection provider return invalid collection name'
+      );
+    }
+    return rendered;
+  }
+  if (typeof collection === 'string') {
+    return collection.split(`{{${dimensionIdKey}}}`).join(dimensionId);
+  }
+  return base.collection;
+};
+
+const adjustCollection = ({base, model, dimensionId, options}) => {
+  const name = renderCollectionName({base, dimensionId, options});
+  if (name === base.collection.name) {
+    return;
+  }
+
+  const adjustedCollection = base.collection.conn.collection(
+    name,
+    base.collection.ops
+  );
+  model.prototype.collection = adjustedCollection;
+  model.prototype[symbolMongooseModelCollection] = adjustedCollection;
+};
+
+/**
+ *
+ * @param {Mongoose.Model} base
  * @param {Mongoose.Db} db
  * @param {*} dimensionId
  * @param {MongoTenantOptions} options
@@ -175,6 +219,8 @@ const createModel = ({base, db, dimensionId, options, createModel}) => {
     dimensionIdGetter,
     dimensionIdKey,
   });
+
+  adjustCollection({base, model, dimensionId, options});
 
   dimensionInterface(model).add(dimension, {...options, dimensionId});
   inheritOtherStatics({model, base});

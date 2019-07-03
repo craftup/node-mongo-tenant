@@ -22,6 +22,7 @@ const fcToUpper = val =>
  * @param {*} [input.dimensionIdType=byTenant]
  * @param {string} [input.dimensionIdKey=getTenantId]
  * @param {boolean} [input.requireDimensionId=true]
+ * @param {string|function} [input.collection] Pattern or provider to determine collection name
  * @param {string} [input.tenantIdKey] Legacy key for dimensionIdGetter (deprecated)
  * @param {string} [input.tenantIdType] Legacy key for dimensionIdType (deprecated)
  * @param {string} [input.tenantIdGetter] Legacy key for dimensionIdKey (deprecated)
@@ -46,6 +47,7 @@ const options = (input = {}) => {
         : input.requireTenantId !== undefined
         ? input.requireTenantId && true
         : true,
+    collection: input.collection,
   };
 };
 

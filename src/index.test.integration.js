@@ -1184,5 +1184,53 @@ describe('plugin', () => {
         });
       });
     });
+
+    describe('configured for dimension based collection separation', () => {
+      describe('by dimension level collection template', () => {
+        it('uses different collections', async () => {
+          const schema = new Schema({t: Number});
+          schema.plugin(plugin, {collection: 'models:{{tenantId}}'});
+          const model = mongoose.model('model', schema);
+
+          await Promise.all([
+            model.byTenant('a').create({t: 1}),
+            model.byTenant('b').create({t: 2}),
+          ]);
+
+          const client = await MongoClient.connect(MONGO_URI);
+          const db = client.db();
+          const collections = await db.collections();
+          const collectionNames = collections
+            .map(c => c.collectionName)
+            .filter(n => n.startsWith('system.') === false)
+            .sort((a, b) => a.localeCompare(b));
+
+          expect(collectionNames).toEqual(['models', 'models:a', 'models:b']);
+        });
+      });
+
+      describe('by dimension level collection provider', () => {
+        it('uses different collections', async () => {
+          const schema = new Schema({t: Number});
+          schema.plugin(plugin, {collection: 'models:{{tenantId}}'});
+          const model = mongoose.model('model', schema);
+
+          await Promise.all([
+            model.byTenant('a').create({t: 1}),
+            model.byTenant('b').create({t: 2}),
+          ]);
+
+          const client = await MongoClient.connect(MONGO_URI);
+          const db = client.db();
+          const collections = await db.collections();
+          const collectionNames = collections
+            .map(c => c.collectionName)
+            .filter(n => n.startsWith('system.') === false)
+            .sort((a, b) => a.localeCompare(b));
+
+          expect(collectionNames).toEqual(['models', 'models:a', 'models:b']);
+        });
+      });
+    });
   });
 });
