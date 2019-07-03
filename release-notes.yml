@@ -4,9 +4,30 @@ description: >
   document level (for now...). It creates a tenant-reference field and takes care of unique indexes.
   Also it provides access to tenant-bound model-classes, that prohibit the exploid of the given tenant scope.
   Last but not least the "MAGIC" can be disabled so that shipping of the same code in single- and
-  multi-tenancy environment (on premis vs. cloud hosted) is a question of a single line of config.
+  multi-tenancy environment (on premise vs. cloud hosted) is a question of a single line of config.
 
 releases:
+- version: Unreleased
+  added:
+    - >
+      Plugin can now be applied multiple times on single schema to achieve multi dimensional setups.
+
+      To achieve this a new config option named `dimension` is available. This is the prime indicator for compatibility
+      between two different plugin instances. That option is optional with `tenant` as default so backward compatibility
+      is guaranteed.
+    - 'Full support of path level index options (`new Schema({t: {type: String, index: {...}})`).'
+  changed:
+    - >
+      **BREAKING** Default value of option to make tenant id required is now `true` instead of `false`. This changes the
+      default behaviour.
+  removed:
+    - >
+      **BREAKING** Schemas, Models and Documents no longer expose `hasTenantContext` to indicate if the plugin is
+      applied to them.
+    - >
+      **BREAKING** Schema types no longer support the shorthand `partialFilterExpression` option. That shorthand option
+      was never supported by mongoose in the first place. If that option is needed please use
+      `{..., index: { partialFilterExpression: ...}}` instead.
 - version: 1.6.0
   date: 2019-03-21
   fixed:
