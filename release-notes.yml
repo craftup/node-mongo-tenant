@@ -9,12 +9,21 @@ description: >
 releases:
 - version: Unreleased
   added:
+    - >
+      Plugin can now be applied multiple times on single schema to achieve multi dimensional setups.
+
+      To achieve this a new config option named `dimension` is available. This is the prime indicator for compatibility
+      between two different plugin instances. That option is optional with `tenant` as default so backward compatibility
+      is guaranteed.
     - 'Full support of path level index options (`new Schema({t: {type: String, index: {...}})`).'
   changed:
     - >
       **BREAKING** Default value of option to make tenant id required is now `true` instead of `false`. This changes the
       default behaviour.
   removed:
+    - >
+      **BREAKING** Schemas, Models and Documents no longer expose `hasTenantContext` to indicate if the plugin is
+      applied to them.
     - >
       **BREAKING** Schema types no longer support the shorthand `partialFilterExpression` option. That shorthand option
       was never supported by mongoose in the first place. If that option is needed please use

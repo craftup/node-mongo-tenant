@@ -1,6 +1,7 @@
 const {Mongoose, Schema, version: mongooseVersion} = require('mongoose');
 const {MongoClient, ObjectId} = require('mongodb');
 const plugin = require('./index');
+const dimensionInterface = require('./dimension-interface');
 
 const MONGO_URI =
   process.env.MONGO_URI || 'mongodb://localhost/mongo-tenant-test';
@@ -95,8 +96,8 @@ describe('plugin', () => {
           modelT2 = model.byTenant(2);
         });
 
-        it('report having a tenant context', () => {
-          expect(modelT1).toHaveProperty('hasTenantContext', true);
+        it('have a dimension context', () => {
+          expect(dimensionInterface(modelT1).has('tenant')).toBe(true);
         });
 
         it('report the right tenant id', () => {
@@ -104,7 +105,7 @@ describe('plugin', () => {
           expect(modelT2.getTenantId()).toBe(2);
         });
 
-        describe('which when instanciated create documents that', () => {
+        describe('which when instantiated create documents that', () => {
           let docT1;
           let docT2;
           beforeEach(() => {
@@ -112,8 +113,8 @@ describe('plugin', () => {
             docT2 = new modelT2();
           });
 
-          it('report having a tenant context', () => {
-            expect(docT1).toHaveProperty('hasTenantContext', true);
+          it('have a dimension context', () => {
+            expect(dimensionInterface(docT1).has('tenant')).toBe(true);
           });
 
           it('report the right tenant id', () => {
@@ -388,7 +389,7 @@ describe('plugin', () => {
       });
     }
 
-    it('binds Model.findOneAndRemove() to tenant context', async () => {
+    it('binds Model.findOneAndRemove() to dimension context', async () => {
       const {model} = buildModel();
       await model.create({tenantId: 'a'}, {tenantId: 'a'}, {tenantId: 'b'});
 
@@ -400,7 +401,7 @@ describe('plugin', () => {
     });
 
     if (mongooseVersion >= '5.4.0') {
-      it('binds Model.findOneAndReplace() to tenant context', async () => {
+      it('binds Model.findOneAndReplace() to dimension context', async () => {
         const {model} = buildModel({k: Number, v: Number});
         await model.create(
           {tenantId: 'a', k: 1, v: 1},
@@ -419,7 +420,7 @@ describe('plugin', () => {
       });
     }
 
-    it('binds Model.findOneAndUpdate() to tenant context', async () => {
+    it('binds Model.findOneAndUpdate() to dimension context', async () => {
       const {model} = buildModel({k: Number, v: Number});
       await model.create(
         {tenantId: 'a', k: 1, v: 1},
@@ -444,7 +445,7 @@ describe('plugin', () => {
       });
     });
 
-    it('binds Model.insertMany() to tenant context', async () => {
+    it('binds Model.insertMany() to dimension context', async () => {
       const {model} = buildModel({t: Number});
       const insertedDocs = await model
         .byTenant('a')
@@ -452,8 +453,8 @@ describe('plugin', () => {
       const allDocs = await model.find().sort({t: 1});
 
       expect(insertedDocs).toHaveLength(2);
-      expect(insertedDocs[0].hasTenantContext).toBeTruthy();
-      expect(insertedDocs[1].hasTenantContext).toBeTruthy();
+      expect(dimensionInterface(insertedDocs[0]).has('tenant')).toBe(true);
+      expect(dimensionInterface(insertedDocs[1]).has('tenant')).toBe(true);
       expect(insertedDocs.map(doc => doc.toObject())).toMatchObject([
         {tenantId: 'a', t: 1},
         {tenantId: 'a', t: 2},
@@ -464,7 +465,7 @@ describe('plugin', () => {
       ]);
     });
 
-    it('binds Model.remove() to tenant context', async () => {
+    it('binds Model.remove() to dimension context', async () => {
       const {model} = buildModel({t: Number});
       await model.create(
         {tenantId: 'a', t: 1},
@@ -483,7 +484,7 @@ describe('plugin', () => {
     });
 
     if (mongooseVersion >= '4.9.0') {
-      it('binds Model.replaceOne() to tenant context', async () => {
+      it('binds Model.replaceOne() to dimension context', async () => {
         const {model} = buildModel({k: Number, v: Number});
         await model.create(
           {tenantId: 'a', k: 1, v: 1},
@@ -502,7 +503,7 @@ describe('plugin', () => {
       });
     }
 
-    it('binds Model.update() to tenant context', async () => {
+    it('binds Model.update() to dimension context', async () => {
       const {model} = buildModel({t: Number});
       await model.create({tenantId: 'a', t: 1}, {tenantId: 'b', t: 1});
 
@@ -517,7 +518,7 @@ describe('plugin', () => {
       expect(sortedDocs[1].toObject()).toMatchObject({tenantId: 'b', t: 2});
     });
 
-    it('binds Model.updateOne() to tenant context', async () => {
+    it('binds Model.updateOne() to dimension context', async () => {
       const {model} = buildModel({t: Number});
       await model.create({tenantId: 'a', t: 1}, {tenantId: 'b', t: 1});
 
@@ -532,7 +533,7 @@ describe('plugin', () => {
       expect(sortedDocs[1].toObject()).toMatchObject({tenantId: 'b', t: 2});
     });
 
-    it('binds Model.updateMany() to tenant context', async () => {
+    it('binds Model.updateMany() to dimension context', async () => {
       const {model} = buildModel({t: Number});
       await model.create(
         {tenantId: 'a', t: 1},
@@ -920,18 +921,20 @@ describe('plugin', () => {
       });
     });
 
-    describe('applied on schema with sub schema', () => {
-      describe('where sub schema is without tenant level', () => {
-        it('should pass down tenant context on Model.find().populate()', async () => {
-          const subModel = mongoose.model(
-            'subModel',
+    describe('applied on schema with reference to other schema', () => {
+      describe('where other schema is without dimension', () => {
+        it('should not pass down dimension context on Model.find().populate()', async () => {
+          const otherModel = mongoose.model(
+            'otherModel',
             new Schema({tenantId: String})
           );
           const {model} = buildModel({
-            children: [{type: Schema.Types.ObjectId, ref: subModel.modelName}],
+            children: [
+              {type: Schema.Types.ObjectId, ref: otherModel.modelName},
+            ],
           });
 
-          const subDocs = await subModel.create([
+          const subDocs = await otherModel.create([
             {tenantId: 'a'},
             {tenantId: 'b'},
           ]);
@@ -957,19 +960,26 @@ describe('plugin', () => {
               },
             ],
           });
-          expect(docs[0].children[0].hasTenantContext).toBeUndefined();
-          expect(docs[0].children[1].hasTenantContext).toBeUndefined();
+
+          expect(dimensionInterface(docs[0].children[0]).has('tenant')).toBe(
+            false
+          );
+          expect(dimensionInterface(docs[0].children[1]).has('tenant')).toBe(
+            false
+          );
         });
       });
 
-      describe('where sub schema has same tenant level', () => {
-        it('should pass down tenant context on Model.find().populate()', async () => {
-          const {model: subModel} = buildModel({});
+      describe('where other schema has same dimension with identical options', () => {
+        it('should pass down dimension context on Model.find().populate()', async () => {
+          const {model: otherModel} = buildModel({});
           const {model} = buildModel({
-            children: [{type: Schema.Types.ObjectId, ref: subModel.modelName}],
+            children: [
+              {type: Schema.Types.ObjectId, ref: otherModel.modelName},
+            ],
           });
 
-          const subDocs = await subModel.create([
+          const subDocs = await otherModel.create([
             {tenantId: 'a'},
             {tenantId: 'b'},
           ]);
@@ -993,17 +1003,65 @@ describe('plugin', () => {
               },
             ],
           });
-          expect(docs[0].children[0].hasTenantContext).toBeTruthy();
+          expect(dimensionInterface(docs[0].children[0]).has('tenant')).toBe(
+            true
+          );
+        });
+      });
+
+      describe('where other schema has same dimension with different options', () => {
+        it('should pass down dimension context on Model.find().populate()', async () => {
+          const {model: otherModel} = buildModel(
+            {},
+            {
+              dimensionIdKey: 'tenant_id',
+              accessorMethod: 'by_tenant',
+            }
+          );
+          const {model} = buildModel({
+            children: [
+              {type: Schema.Types.ObjectId, ref: otherModel.modelName},
+            ],
+          });
+
+          const subDocs = await otherModel.create([
+            {tenant_id: 'a'},
+            {tenant_id: 'b'},
+          ]);
+          await model.create({
+            tenantId: 'a',
+            children: subDocs.map(doc => doc._id),
+          });
+          const docs = await model
+            .byTenant('a')
+            .find()
+            .populate({path: 'children', options: {sort: {tenant_id: 1}}});
+          const objects = docs.map(doc => doc.toObject());
+
+          expect(objects).toHaveLength(1);
+          expect(objects[0].children).toHaveLength(1);
+          expect(objects[0]).toMatchObject({
+            tenantId: 'a',
+            children: [
+              {
+                tenant_id: 'a',
+              },
+            ],
+          });
+          expect(dimensionInterface(docs[0].children[0]).has('tenant')).toBe(
+            true
+          );
         });
       });
 
       describe('where sub schema has different tenant level', () => {
-        it('should not pass down tenant context on Model.find().populate()', async () => {
+        it('should not pass down dimension context on Model.find().populate()', async () => {
           const {model: subModel} = buildModel(
             {},
             {
-              tenantIdKey: 'dimension',
-              tenantIdGetter: 'getDimension',
+              dimension: 'dimension',
+              dimensionIdKey: 'dimension',
+              dimensionIdGetter: 'getDimension',
               accessorMethod: 'byDimension',
             }
           );
@@ -1038,8 +1096,12 @@ describe('plugin', () => {
               },
             ],
           });
-          expect(docs[0].children[0].hasTenantContext).toBeUndefined();
-          expect(docs[0].children[1].hasTenantContext).toBeUndefined();
+          expect(dimensionInterface(docs[0].children[0]).has('tenant')).toBe(
+            false
+          );
+          expect(dimensionInterface(docs[0].children[1]).has('tenant')).toBe(
+            false
+          );
         });
       });
     });
@@ -1077,6 +1139,48 @@ describe('plugin', () => {
           tenantId: 'a',
           kind: 'test',
           inherit: true,
+        });
+      });
+    });
+
+    describe('when applied multiple times on single schema', () => {
+      describe('with different dimensions', () => {
+        let schema;
+        let model;
+
+        beforeEach(async () => {
+          schema = new Schema({});
+          schema.plugin(plugin, {
+            dimension: 'x',
+            dimensionIdType: Number,
+            dimensionIdKey: 'x',
+          });
+          schema.plugin(plugin, {
+            dimension: 'y',
+            dimensionIdType: Number,
+            dimensionIdKey: 'y',
+          });
+          model = mongoose.model('model', schema);
+
+          await model.create([{x: 1, y: 1}, {x: 1, y: 2}, {x: 2, y: 2}]);
+        });
+
+        it('filters by first dimensions', async () => {
+          const docs = await model.byX(1).find();
+          expect(docs).toHaveLength(2);
+        });
+
+        it('filters by second dimensions', async () => {
+          const docs = await model.byY(1).find();
+          expect(docs).toHaveLength(1);
+        });
+
+        it('filters by multiple dimensions', async () => {
+          const docs = await model
+            .byX(1)
+            .byY(2)
+            .find();
+          expect(docs).toHaveLength(1);
         });
       });
     });

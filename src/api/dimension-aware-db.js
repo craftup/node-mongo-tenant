@@ -1,25 +1,27 @@
 const arePluginsCompatible = require('./are-plugins-compatible');
+const dimensionInterface = require('../dimension-interface');
 
 /**
- * Create db connection bound to a specific tenant
+ * Create db connection bound to a specific dimension
  *
  * @param {Connection} db
- * @param {*} tenantId
+ * @param {*} dimensionId
  * @param {MongoTenantOptions} options
  * @returns {Connection}
  */
-module.exports = ({db, tenantId, options}) => {
+module.exports = ({db, dimensionId, options}) => {
   const awareDb = Object.create(db);
   awareDb.model = name => {
     const unawareModel = db.model(name);
-    /** @type MongoTenantOptions */
-    const otherPluginOptions = unawareModel.mongoTenant;
+    const otherPluginOptions = dimensionInterface(unawareModel.schema).get(
+      options.dimension
+    );
 
     if (!arePluginsCompatible(options, otherPluginOptions)) {
       return unawareModel;
     }
 
-    return unawareModel[otherPluginOptions.accessorMethod](tenantId);
+    return unawareModel[otherPluginOptions.accessorMethod](dimensionId);
   };
   return awareDb;
 };

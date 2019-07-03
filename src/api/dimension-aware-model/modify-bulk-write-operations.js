@@ -1,11 +1,11 @@
-const patchDocument = ({document, tenantId, tenantIdKey}) => ({
+const patchDocument = ({document, dimensionId, dimensionIdKey}) => ({
   ...document,
-  [tenantIdKey]: tenantId,
+  [dimensionIdKey]: dimensionId,
 });
 
-const patchFilter = ({filter, tenantId, tenantIdKey}) => ({
+const patchFilter = ({filter, dimensionId, dimensionIdKey}) => ({
   ...(filter || {}),
-  [tenantIdKey]: tenantId,
+  [dimensionIdKey]: dimensionId,
 });
 
 const forbiddenUpdateOperations = [
@@ -19,12 +19,12 @@ const forbiddenUpdateOperations = [
   '$unset',
 ];
 const patchableUpdateOperations = ['$set', '$setOnInsert'];
-const patchUpdate = ({update, tenantId, tenantIdKey}) => {
+const patchUpdate = ({update, dimensionId, dimensionIdKey}) => {
   const forbiddenOpsUsed = Object.entries(update).reduce(
     (ops, [op, fields]) => {
       if (
         forbiddenUpdateOperations.includes(op) &&
-        Object.keys(fields).includes(tenantIdKey)
+        Object.keys(fields).includes(dimensionIdKey)
       ) {
         ops.push(op);
       }
@@ -34,7 +34,7 @@ const patchUpdate = ({update, tenantId, tenantIdKey}) => {
   );
   if (forbiddenOpsUsed.length > 0) {
     throw new Error(
-      `Modification of ${tenantIdKey} via bulkInsert update (${forbiddenOpsUsed.join(
+      `Modification of ${dimensionIdKey} via bulkInsert update (${forbiddenOpsUsed.join(
         ', '
       )}`
     );
@@ -44,42 +44,54 @@ const patchUpdate = ({update, tenantId, tenantIdKey}) => {
   patchableUpdateOperations.forEach(op => {
     if (
       patchedUpdate[op] &&
-      Object.keys(patchedUpdate[op]).includes(tenantIdKey)
+      Object.keys(patchedUpdate[op]).includes(dimensionIdKey)
     ) {
-      patchedUpdate[op][tenantIdKey] = tenantId;
+      patchedUpdate[op][dimensionIdKey] = dimensionId;
     }
   });
 
   return patchedUpdate;
 };
 
-const modifyInsert = ({tenantId, tenantIdKey, op: {document, ...rest}}) => ({
-  document: patchDocument({document, tenantId, tenantIdKey}),
+const modifyInsert = ({
+  dimensionId,
+  dimensionIdKey,
+  op: {document, ...rest},
+}) => ({
+  document: patchDocument({document, dimensionId, dimensionIdKey}),
   ...rest,
 });
 
 const modifyUpdate = ({
-  tenantId,
-  tenantIdKey,
+  dimensionId,
+  dimensionIdKey,
   op: {filter, update, ...rest},
 }) => ({
-  filter: patchFilter({filter, tenantId, tenantIdKey}),
-  update: patchUpdate({update, tenantId, tenantIdKey}),
+  filter: patchFilter({filter, dimensionId, dimensionIdKey}),
+  update: patchUpdate({update, dimensionId, dimensionIdKey}),
   ...rest,
 });
 
 const modifyReplace = ({
-  tenantId,
-  tenantIdKey,
+  dimensionId,
+  dimensionIdKey,
   op: {filter, replacement, ...rest},
 }) => ({
-  filter: patchFilter({filter, tenantId, tenantIdKey}),
-  replacement: patchDocument({document: replacement, tenantId, tenantIdKey}),
+  filter: patchFilter({filter, dimensionId, dimensionIdKey}),
+  replacement: patchDocument({
+    document: replacement,
+    dimensionId,
+    dimensionIdKey,
+  }),
   ...rest,
 });
 
-const modifyDelete = ({tenantId, tenantIdKey, op: {filter, ...rest}}) => ({
-  filter: patchFilter({filter, tenantId, tenantIdKey}),
+const modifyDelete = ({
+  dimensionId,
+  dimensionIdKey,
+  op: {filter, ...rest},
+}) => ({
+  filter: patchFilter({filter, dimensionId, dimensionIdKey}),
   ...rest,
 });
 
@@ -92,15 +104,15 @@ const opToModifierMap = {
   deleteMany: modifyDelete,
 };
 
-module.exports = ({ops, tenantId, tenantIdKey}) => {
+module.exports = ({ops, dimensionId, dimensionIdKey}) => {
   return (ops || []).map(op => {
     const modifiedOp = {...op};
 
     Object.entries(modifiedOp).forEach(([opKey, op]) => {
       if (opToModifierMap[opKey]) {
         modifiedOp[opKey] = opToModifierMap[opKey]({
-          tenantId,
-          tenantIdKey,
+          dimensionId,
+          dimensionIdKey,
           op,
         });
       }

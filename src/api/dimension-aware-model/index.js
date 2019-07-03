@@ -1,15 +1,20 @@
-const createTenantAwareDb = require('../tenant-aware-db');
-const parseAggregateArguments = require('./parse-aggregate-arguments');
+const createDimensionAwareDb = require('../dimension-aware-db');
+const dimensionInterface = require('../../dimension-interface');
 const modifyBulkWriteOpertations = require('./modify-bulk-write-operations');
+const parseAggregateArguments = require('./parse-aggregate-arguments');
+const symbolDimensions = require('../../symbol-dimensions');
 
-const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
+const createPlainModel = ({
+  base,
+  db,
+  dimension,
+  dimensionId,
+  dimensionIdGetter,
+  dimensionIdKey,
+}) =>
   class extends base {
-    static get hasTenantContext() {
-      return true;
-    }
-
-    static [tenantIdGetter]() {
-      return tenantId;
+    static [dimensionIdGetter]() {
+      return dimensionId;
     }
 
     /**
@@ -23,7 +28,7 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
 
       pipeline.unshift({
         $match: {
-          [tenantIdKey]: this[tenantIdGetter](),
+          [dimensionIdKey]: this[dimensionIdGetter](),
         },
       });
 
@@ -36,13 +41,13 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
     }
 
     static deleteOne(conditions, callback) {
-      conditions[tenantIdKey] = this[tenantIdGetter]();
+      conditions[dimensionIdKey] = this[dimensionIdGetter]();
 
       return super.deleteOne(conditions, callback);
     }
 
     static deleteMany(conditions, options, callback) {
-      conditions[tenantIdKey] = this[tenantIdGetter]();
+      conditions[dimensionIdKey] = this[dimensionIdGetter]();
 
       return super.deleteMany(conditions, options, callback);
     }
@@ -54,7 +59,7 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
       }
 
       if (conditions) {
-        conditions[tenantIdKey] = this[tenantIdGetter]();
+        conditions[dimensionIdKey] = this[dimensionIdGetter]();
       }
 
       return super.remove(conditions, callback);
@@ -67,21 +72,21 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
       }
 
       const self = this;
-      const tenantId = this[tenantIdGetter]();
+      const dimensionId = this[dimensionIdGetter]();
 
       // Model.insertMany supports a single document as parameter
       if (!Array.isArray(docs)) {
-        docs[tenantIdKey] = tenantId;
+        docs[dimensionIdKey] = dimensionId;
       } else {
         docs.forEach(doc => {
-          doc[tenantIdKey] = tenantId;
+          doc[dimensionIdKey] = dimensionId;
         });
       }
 
       const promisedResult = options
         ? super.insertMany(docs, options)
         : super.insertMany(docs);
-      // ensure the returned docs are instanced of the bound multi tenant model
+      // ensure the returned docs are instanced of the bound multi dimension model
       const promisedMapped = promisedResult.then(result =>
         Array.isArray(result)
           ? result.map(doc => new self(doc))
@@ -99,11 +104,11 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
     }
 
     static bulkWrite(ops, options, callback) {
-      const tenantId = this[tenantIdGetter]();
+      const dimensionId = this[dimensionIdGetter]();
       const modifiedOps = modifyBulkWriteOpertations({
         ops,
-        tenantId,
-        tenantIdKey,
+        dimensionId,
+        dimensionIdKey,
       });
 
       return super.bulkWrite(modifiedOps, options, callback);
@@ -113,12 +118,13 @@ const createPlainModel = ({base, db, tenantId, tenantIdGetter, tenantIdKey}) =>
       return db;
     }
 
-    get hasTenantContext() {
-      return true;
+    constructor(doc, fields, skipId) {
+      super(doc, fields, skipId);
+      this[symbolDimensions] = this.constructor[symbolDimensions];
     }
 
-    [tenantIdGetter]() {
-      return tenantId;
+    [dimensionIdGetter]() {
+      return dimensionId;
     }
   };
 
@@ -149,41 +155,45 @@ const createDiscriminatorModels = ({model, base, createModel}) => {
   );
 };
 
-const createModel = ({
-  base,
-  db,
-  tenantId,
-  tenantIdGetter,
-  tenantIdKey,
-  createModel,
-}) => {
+/**
+ *
+ * @param {Mongoose.Model} base
+ * @param {Mongoose.Db} db
+ * @param {*} dimensionId
+ * @param {MongoTenantOptions} options
+ * @param createModel
+ * @returns {Mongoose.Model}
+ */
+const createModel = ({base, db, dimensionId, options, createModel}) => {
+  const {dimension, dimensionIdGetter, dimensionIdKey} = options;
+
   const model = createPlainModel({
     base,
     db,
-    tenantId,
-    tenantIdGetter,
-    tenantIdKey,
+    dimension,
+    dimensionId,
+    dimensionIdGetter,
+    dimensionIdKey,
   });
 
+  dimensionInterface(model).add(dimension, {...options, dimensionId});
   inheritOtherStatics({model, base});
   createDiscriminatorModels({model, base, createModel});
 
   return model;
 };
 
-module.exports = ({base, options, tenantId}) => {
-  const {tenantIdGetter, tenantIdKey} = options;
-  const db = createTenantAwareDb({
+module.exports = ({base, options, dimensionId}) => {
+  const db = createDimensionAwareDb({
     db: base.db,
-    tenantId,
+    dimensionId,
     options,
   });
 
   const config = {
     db,
-    tenantId,
-    tenantIdGetter,
-    tenantIdKey,
+    dimensionId,
+    options,
   };
   const create = base =>
     createModel({

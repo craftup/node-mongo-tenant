@@ -1,4 +1,4 @@
-const addTenantIdField = require('./add-tenant-id-field');
+const addTenantIdField = require('./add-dimension-id-field');
 
 describe('add-tenant-id-field', () => {
   describe('when called with valid parameters', () => {

@@ -1,18 +1,22 @@
-const buildAddTenantId = require('./document/add-tenant-id');
-const buildProtectAgainstTenantOverwrite = require('./query/protect-against-tenant-overwrite');
-const buildRestrictToTenant = require('./query/restrict-to-tenant');
+const buildAddDimensionId = require('./document/add-dimension-id');
+const buildProtectAgainstDimensionOverwrite = require('./query/protect-against-dimension-overwrite');
+const buildRestrictToDimension = require('./query/restrict-to-dimension');
 const sanitizeOptions = require('../options');
 
 /**
- * Tenant middleware plugin
+ * Middleware plugin
  * @param {Mongoose.Schema} schema Schema to extend
  * @param {MongoTenantOptions} [options] Options (optional)
  */
 const middleware = (schema, options) => {
   const sanitizedOptions = sanitizeOptions(options || {});
-  const {tenantIdKey, tenantIdGetter} = sanitizedOptions;
+  const {dimension, dimensionIdKey, dimensionIdGetter} = sanitizedOptions;
 
-  const restrictToTenant = buildRestrictToTenant({tenantIdKey, tenantIdGetter});
+  const restrictToDimension = buildRestrictToDimension({
+    dimension,
+    dimensionIdKey,
+    dimensionIdGetter,
+  });
   [
     'count',
     'deleteMany',
@@ -28,11 +32,12 @@ const middleware = (schema, options) => {
     'update',
     'updateOne',
     'updateMany',
-  ].forEach(operation => schema.pre(operation, restrictToTenant));
+  ].forEach(operation => schema.pre(operation, restrictToDimension));
 
-  const protectedAgainstOverwrite = buildProtectAgainstTenantOverwrite({
-    tenantIdKey,
-    tenantIdGetter,
+  const protectedAgainstOverwrite = buildProtectAgainstDimensionOverwrite({
+    dimension,
+    dimensionIdKey,
+    dimensionIdGetter,
   });
   [
     'findOneAndReplace',
@@ -44,10 +49,13 @@ const middleware = (schema, options) => {
   ].forEach(operation => schema.pre(operation, protectedAgainstOverwrite));
 
   // First `save` pre hook fired will be the mongoose default validation plugin.
-  // So if we add `tenantId` on a subsequent `save` pre hook the validation will
-  // always fail (given `tenantId` is required but not set). So we have to
-  // ensure right `tenantId` on validate.
-  schema.pre('validate', buildAddTenantId({tenantIdKey, tenantIdGetter}));
+  // So if we add `dimension id  on a subsequent `save` pre hook the validation
+  // will always fail (given dimension id is required but not set). So we have
+  // to ensure right dimension id on validate.
+  schema.pre(
+    'validate',
+    buildAddDimensionId({dimension, dimensionIdKey, dimensionIdGetter})
+  );
 };
 
 module.exports = middleware;

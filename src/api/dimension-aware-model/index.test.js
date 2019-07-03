@@ -1,11 +1,18 @@
-const tenantAwareModel = require('./index');
+const dimensionAwareModel = require('./index');
+const dimensionInterface = require('../../dimension-interface');
 const buildOptions = require('../../options');
 
-describe('tenant-aware-model', () => {
+describe('dimension-aware-model', () => {
   describe('when called with valid parameters', () => {
-    const tenantId = '23';
-    const tenantIdGetter = 'getTenantId';
-    const tenantIdKey = 'tenantId';
+    const dimensionId = '23';
+    const dimension = 'dim';
+    const dimensionIdGetter = 'getDimId';
+    const dimensionIdKey = 'dimId';
+    const options = buildOptions({
+      dimension,
+      dimensionIdGetter,
+      dimensionIdKey,
+    });
 
     const buildBaseModel = () => {
       const base = class {};
@@ -17,10 +24,10 @@ describe('tenant-aware-model', () => {
     let model;
     beforeEach(() => {
       base = buildBaseModel();
-      model = tenantAwareModel({
+      model = dimensionAwareModel({
         base,
-        options: buildOptions({tenantIdGetter, tenantIdKey}),
-        tenantId,
+        options,
+        dimensionId,
       });
     });
 
@@ -33,10 +40,10 @@ describe('tenant-aware-model', () => {
       base.discriminators = {
         test: class {},
       };
-      model = tenantAwareModel({
+      model = dimensionAwareModel({
         base,
-        options: buildOptions({tenantIdGetter, tenantIdKey}),
-        tenantId,
+        options,
+        dimensionId,
       });
       expect(model).toHaveProperty('discriminators.test');
       expect(model.discriminators.test).not.toBe(base.discriminators.test);
@@ -45,19 +52,21 @@ describe('tenant-aware-model', () => {
     describe('returns a model that', () => {
       const callback = () => {};
 
-      it('reports having a tenant context', () => {
-        const result = model.hasTenantContext;
+      it('keeps track of applied dimensions', () => {
+        const hasDimension = dimensionInterface(model).has(dimension);
+        const dimensionOptions = dimensionInterface(model).get(dimension);
 
-        expect(result).toBe(true);
+        expect(hasDimension).toBe(true);
+        expect(dimensionOptions).toEqual({dimensionId, ...options});
       });
 
-      it('reports bound tenant id', () => {
-        const result = model[tenantIdGetter]();
+      it('reports bound dimension id', () => {
+        const result = model[dimensionIdGetter]();
 
-        expect(result).toBe(tenantId);
+        expect(result).toBe(dimensionId);
       });
 
-      it('has a tenant aware db model', () => {
+      it('has a dimension aware db model', () => {
         expect(model.db).not.toBe(base.db);
       });
 
@@ -67,41 +76,41 @@ describe('tenant-aware-model', () => {
         });
 
         // mongoose 4.x
-        it('applies tenant context to single pipeline', () => {
+        it('applies dimension context to single pipeline', () => {
           model.aggregate({$project: {a: 1}});
           expect(base.aggregate).toHaveBeenCalled();
           expect(base.aggregate.mock.calls[0][0]).toEqual([
-            {$match: {[tenantIdKey]: tenantId}},
+            {$match: {[dimensionIdKey]: dimensionId}},
             {$project: {a: 1}},
           ]);
         });
 
         // mongoose 4.x
-        it('applies tenant context to multi pipeline', () => {
+        it('applies dimension context to multi pipeline', () => {
           model.aggregate({$project: {a: 1}}, {$skip: 5});
           expect(base.aggregate).toHaveBeenCalled();
           expect(base.aggregate.mock.calls[0][0]).toEqual([
-            {$match: {[tenantIdKey]: tenantId}},
+            {$match: {[dimensionIdKey]: dimensionId}},
             {$project: {a: 1}},
             {$skip: 5},
           ]);
         });
 
-        it('applies tenant context to pipeline list', () => {
+        it('applies dimension context to pipeline list', () => {
           model.aggregate([{$project: {a: 1}}, {$skip: 5}]);
           expect(base.aggregate).toHaveBeenCalled();
           expect(base.aggregate.mock.calls[0][0]).toEqual([
-            {$match: {[tenantIdKey]: tenantId}},
+            {$match: {[dimensionIdKey]: dimensionId}},
             {$project: {a: 1}},
             {$skip: 5},
           ]);
         });
 
-        it('applies tenant context to aggregate builder', () => {
+        it('applies dimension context to aggregate builder', () => {
           model.aggregate();
           expect(base.aggregate).toHaveBeenCalled();
           expect(base.aggregate.mock.calls[0][0]).toEqual([
-            {$match: {[tenantIdKey]: tenantId}},
+            {$match: {[dimensionIdKey]: dimensionId}},
           ]);
         });
 
@@ -113,22 +122,22 @@ describe('tenant-aware-model', () => {
         });
       });
 
-      it('applies tenant context in deleteOne', () => {
+      it('applies dimension context in deleteOne', () => {
         base.deleteOne = jest.fn();
         model.deleteOne({}, undefined);
 
         expect(base.deleteOne).toHaveBeenCalledWith(
-          {[tenantIdKey]: tenantId},
+          {[dimensionIdKey]: dimensionId},
           undefined
         );
       });
 
-      it('applies tenant context in deleteMany', () => {
+      it('applies dimension context in deleteMany', () => {
         base.deleteMany = jest.fn();
         model.deleteMany({}, {}, undefined);
 
         expect(base.deleteMany).toHaveBeenCalledWith(
-          {[tenantIdKey]: tenantId},
+          {[dimensionIdKey]: dimensionId},
           {},
           undefined
         );
@@ -139,15 +148,15 @@ describe('tenant-aware-model', () => {
           [
             'just with conditions',
             [{foo: 'bar'}],
-            [{foo: 'bar', [tenantIdKey]: tenantId}, undefined],
+            [{foo: 'bar', [dimensionIdKey]: dimensionId}, undefined],
           ],
           [
             'with conditions and callback',
             [{foo: 'bar'}, callback],
-            [{foo: 'bar', [tenantIdKey]: tenantId}, callback],
+            [{foo: 'bar', [dimensionIdKey]: dimensionId}, callback],
           ],
         ])(
-          'applies tenant context when called %s',
+          'applies dimension context when called %s',
           (name, args, expectedBaseArgs) => {
             base.remove = jest.fn();
             model.remove(...args);
@@ -161,10 +170,10 @@ describe('tenant-aware-model', () => {
           [
             'just with callback',
             [callback],
-            [{[tenantIdKey]: tenantId}, callback],
+            [{[dimensionIdKey]: dimensionId}, callback],
           ],
         ])(
-          'does not apply tenant context when called %s',
+          'does not apply dimension context when called %s',
           (name, args, expectedBaseArgs) => {
             base.remove = jest.fn();
             model.remove(...args);
@@ -175,38 +184,38 @@ describe('tenant-aware-model', () => {
       });
 
       describe('overrides static insertMany which', () => {
-        it('applies tenant context on single document', async () => {
+        it('applies dimension context on single document', async () => {
           base.insertMany = jest.fn(() => Promise.resolve({}));
           await model.insertMany({}, undefined);
 
           expect(base.insertMany).toHaveBeenCalledTimes(1);
           expect(base.insertMany.mock.calls[0][0]).toEqual({
-            [tenantIdKey]: tenantId,
+            [dimensionIdKey]: dimensionId,
           });
         });
 
-        it('applies tenant context on multiple documents', async () => {
+        it('applies dimension context on multiple documents', async () => {
           base.insertMany = jest.fn(() => Promise.resolve([{}]));
           await model.insertMany([{}], undefined);
 
           expect(base.insertMany).toHaveBeenCalledTimes(1);
           expect(base.insertMany.mock.calls[0][0]).toEqual([
-            {[tenantIdKey]: tenantId},
+            {[dimensionIdKey]: dimensionId},
           ]);
         });
 
-        it('builds tenant aware models for promise', async () => {
+        it('builds dimension aware models for promise', async () => {
           base.insertMany = docs => Promise.resolve(docs);
           const newDocs = [{}];
           const insertedDocs = await model.insertMany(newDocs);
 
           expect(insertedDocs).toHaveLength(1);
           expect(insertedDocs[0]).toBeInstanceOf(model);
-          expect(insertedDocs[0].hasTenantContext).toBe(true);
-          expect(insertedDocs[0][tenantIdGetter]()).toBe(tenantId);
+          // expect(insertedDocs[0].hasTenantContext).toBe(true);
+          expect(insertedDocs[0][dimensionIdGetter]()).toBe(dimensionId);
         });
 
-        it('builds tenant aware models for callback', done => {
+        it('builds dimension aware models for callback', done => {
           base.insertMany = docs => Promise.resolve(docs);
           const newDoc = {};
           model.insertMany([newDoc], (err, docs) => {
@@ -215,8 +224,8 @@ describe('tenant-aware-model', () => {
 
             const savedDoc = docs[0];
             expect(savedDoc).toBeInstanceOf(model);
-            expect(savedDoc.hasTenantContext).toBe(true);
-            expect(savedDoc[tenantIdGetter]()).toBe(tenantId);
+            // expect(savedDoc.hasTenantContext).toBe(true);
+            expect(savedDoc[dimensionIdGetter]()).toBe(dimensionId);
 
             done();
           });
@@ -233,22 +242,22 @@ describe('tenant-aware-model', () => {
         });
       });
 
-      describe('when instanciated', () => {
+      describe('when instantiated', () => {
         let instance;
         beforeEach(() => {
           instance = new model();
         });
 
-        it('reports having a tenant context', () => {
-          const result = instance.hasTenantContext;
+        // it('reports having a dimension context', () => {
+        //   const result = instance.hasTenantContext;
+        //
+        //   expect(result).toBe(true);
+        // });
 
-          expect(result).toBe(true);
-        });
+        it('reports bound dimension id', () => {
+          const result = instance[dimensionIdGetter]();
 
-        it('reports bound tenant id', () => {
-          const result = instance[tenantIdGetter]();
-
-          expect(result).toBe(tenantId);
+          expect(result).toBe(dimensionId);
         });
       });
     });

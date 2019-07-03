@@ -1,32 +1,32 @@
-const buildModelCache = require('./tenant-aware-model-cache');
-const createTenantAwareModel = require('./tenant-aware-model');
+const createDimensionAwareModel = require('./dimension-aware-model');
+const dimensionInterface = require('../dimension-interface');
 const sanitizeOptions = require('../options');
 
 /**
- * Tenant api plugin
+ * Api plugin
  * @param {Mongoose.Schema} schema Schema to extend
  * @param {MongoTenantOptions} [options] Options (optional)
  */
 module.exports = (schema, options) => {
   const sanitizedOptions = sanitizeOptions(options || {});
-  const {accessorMethod} = sanitizedOptions;
-  const cache = buildModelCache();
+  const {dimension, accessorMethod} = sanitizedOptions;
 
+  dimensionInterface(schema).add(dimension, sanitizedOptions);
+
+  const cache = new Map();
   Object.assign(schema.statics, {
-    [accessorMethod]: function(tenantId) {
-      if (!cache.has(this.modelName, tenantId)) {
+    [accessorMethod]: function(dimensionId) {
+      const cacheKey = `${this.modelName}:${dimension}:${dimensionId}`;
+      if (!cache.has(cacheKey)) {
         const base = this.model(this.modelName);
-        const model = createTenantAwareModel({
+        const model = createDimensionAwareModel({
           base,
-          tenantId,
+          dimensionId,
           options: sanitizedOptions,
         });
-        cache.set(this.modelName, tenantId, model);
+        cache.set(cacheKey, model);
       }
-      return cache.get(this.modelName, tenantId);
-    },
-    get mongoTenant() {
-      return {...sanitizedOptions};
+      return cache.get(cacheKey);
     },
   });
 

@@ -4,13 +4,18 @@
  * @returns {boolean}
  */
 const isPluginOptions = options =>
-  options && options.accessorMethod && options.tenantIdKey && true;
+  (options &&
+    options.dimension &&
+    options.accessorMethod &&
+    options.dimensionIdKey &&
+    true) ||
+  false;
 /**
  * Checks if instance is compatible to other plugin instance
  *
  * For population of referenced models it's necessary to detect if the tenant
  * plugin installed in these models is compatible to the plugin of the host
- * model. If they are compatible they are one the same "level".
+ * model. This is done by comparing the dimension key.
  *
  * @param {MongoTenantOptions} a
  * @param {MongoTenantOptions} b
@@ -18,6 +23,6 @@ const isPluginOptions = options =>
  */
 module.exports = (a, b) => {
   return (
-    isPluginOptions(a) && isPluginOptions(b) && a.tenantIdKey === b.tenantIdKey
+    isPluginOptions(a) && isPluginOptions(b) && a.dimension === b.dimension
   );
 };

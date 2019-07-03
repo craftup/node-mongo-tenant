@@ -1,5 +1,6 @@
 const api = require('./index');
 const buildOptions = require('../options');
+const dimensionInterface = require('../dimension-interface');
 const Mongoose = require('mongoose').Mongoose;
 const Schema = require('mongoose').Schema;
 
@@ -29,22 +30,25 @@ describe('api', () => {
         expect(tenantAwareModel).not.toBe(model);
       });
 
-      it('when called twice for same tenant returns identical new models', () => {
+      it('when called twice for same dimension value returns identical new models', () => {
         const firstTenantAwareModel = model.byTenant(1);
         const secondTenantAwareModel = model.byTenant(1);
         expect(secondTenantAwareModel).toBe(firstTenantAwareModel);
       });
 
-      it('when called for differen tenants returns different new models', () => {
+      it('when called for different dimension values returns different new models', () => {
         const firstTenantAwareModel = model.byTenant(1);
         const secondTenantAwareModel = model.byTenant(2);
         expect(secondTenantAwareModel).not.toBe(firstTenantAwareModel);
       });
     });
 
-    it('reports plugin options', () => {
-      expect(schema).toHaveProperty('statics.mongoTenant');
-      expect(schema.statics.mongoTenant).toEqual(options);
+    it('keeps track of applied dimensions', () => {
+      const hasTenantDimension = dimensionInterface(schema).has('tenant');
+      const dimensionOptions = dimensionInterface(schema).get('tenant');
+
+      expect(hasTenantDimension).toBe(true);
+      expect(dimensionOptions).toEqual(options);
     });
   });
 });

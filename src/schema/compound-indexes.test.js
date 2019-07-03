@@ -3,7 +3,7 @@ const {Schema} = require('mongoose');
 
 describe('compound-indexes', () => {
   describe('when called with valid parameters', () => {
-    const tenantIdKey = 'tenantId';
+    const dimensionIdKey = 'tenantId';
 
     describe('where schema has schema level index', () => {
       let schema;
@@ -17,9 +17,9 @@ describe('compound-indexes', () => {
         describe('with unique key preservation disabled', () => {
           it('compounds the index', () => {
             schema.index({id: 1}, {unique: true, preserveUniqueKey: false});
-            compoundIndexes({schema, tenantIdKey});
+            compoundIndexes({schema, dimensionIdKey});
             expect(schema.indexes()).toEqual([
-              [{id: 1, [tenantIdKey]: 1}, {unique: true, background: true}],
+              [{id: 1, [dimensionIdKey]: 1}, {unique: true, background: true}],
             ]);
           });
         });
@@ -27,7 +27,7 @@ describe('compound-indexes', () => {
         describe('with unique key preservation enabled', () => {
           it('does NOT compound the index', () => {
             schema.index({id: 1}, {unique: true, preserveUniqueKey: true});
-            compoundIndexes({schema, tenantIdKey});
+            compoundIndexes({schema, dimensionIdKey});
             expect(schema.indexes()).toEqual([
               [{id: 1}, {unique: true, background: true}],
             ]);
@@ -38,7 +38,7 @@ describe('compound-indexes', () => {
       describe('and index is NOT unique', () => {
         it('does NOT compounds the index', () => {
           schema.index({id: 1});
-          compoundIndexes({schema, tenantIdKey});
+          compoundIndexes({schema, dimensionIdKey});
           expect(schema.indexes()).toEqual([[{id: 1}, {background: true}]]);
         });
       });
@@ -55,9 +55,9 @@ describe('compound-indexes', () => {
                 preserveUniqueKey: false,
               },
             });
-            compoundIndexes({schema, tenantIdKey});
+            compoundIndexes({schema, dimensionIdKey});
             expect(schema.indexes()).toEqual([
-              [{id: 1, [tenantIdKey]: 1}, {unique: true, background: true}],
+              [{id: 1, [dimensionIdKey]: 1}, {unique: true, background: true}],
             ]);
           });
 
@@ -73,10 +73,10 @@ describe('compound-indexes', () => {
                 preserveUniqueKey: false,
               },
             });
-            compoundIndexes({schema, tenantIdKey});
+            compoundIndexes({schema, dimensionIdKey});
             expect(schema.indexes()).toMatchObject([
               [
-                {id: 1, [tenantIdKey]: 1},
+                {id: 1, [dimensionIdKey]: 1},
                 {
                   unique: true,
                   sparse: true,
@@ -96,7 +96,7 @@ describe('compound-indexes', () => {
                 preserveUniqueKey: true,
               },
             });
-            compoundIndexes({schema, tenantIdKey});
+            compoundIndexes({schema, dimensionIdKey});
             expect(schema.indexes()).toEqual([
               [{id: 1}, {unique: true, background: true}],
             ]);
@@ -111,7 +111,7 @@ describe('compound-indexes', () => {
               index: true,
             },
           });
-          compoundIndexes({schema, tenantIdKey});
+          compoundIndexes({schema, dimensionIdKey});
           expect(schema.indexes()).toEqual([[{id: 1}, {background: true}]]);
         });
       });

@@ -1,55 +1,49 @@
-const createTenantAwareDb = require('./tenant-aware-db');
 const buildOptions = require('../options');
+const createDimensionAwareDb = require('./dimension-aware-db');
+const dimensionInterface = require('../dimension-interface');
 
-describe('tenant-aware-db', () => {
+describe('dimension-aware-db', () => {
   describe('when called with proper parameters', () => {
-    const tenantId = '23';
-    const options = buildOptions();
+    const dimension = 'dim';
+    const dimensionId = '23';
+    const options = buildOptions({dimension});
 
     it('overwrites the model method', () => {
       const db = {
         model: () => {},
       };
-      const result = createTenantAwareDb({db, tenantId, options});
+      const result = createDimensionAwareDb({db, dimensionId, options});
       expect(result).toHaveProperty('model');
       expect(result.model).toBeInstanceOf(Function);
       expect(result.model).not.toBe(db.model);
     });
 
-    it('returns a tenant aware model if compatible', () => {
-      const awareModel = {
-        hasTenantContext: true,
-        mongoTenant: {...options},
-      };
+    it('returns a dimension aware model if compatible', () => {
+      const awareModel = {};
       const unawareModel = {
+        schema: {},
         [options.accessorMethod]: () => awareModel,
-        mongoTenant: {...options},
       };
+      dimensionInterface(unawareModel.schema).add(dimension, options);
       const db = {
         model: () => unawareModel,
       };
 
-      const awareDb = createTenantAwareDb({db, tenantId, options});
+      const awareDb = createDimensionAwareDb({db, dimensionId, options});
       const result = awareDb.model('test');
 
       expect(result).toBe(awareModel);
     });
 
-    it('returns a tenant unaware model if not compatible', () => {
+    it('returns a dimension unaware model if not compatible', () => {
       const unawareModel = {
-        [options.accessorMethod]: () => {
-          throw new Error();
-        },
-        mongoTenant: {
-          ...options,
-          tenantIdKey: 'dimension',
-        },
+        schema: {},
       };
       const db = {
         model: () => unawareModel,
       };
 
-      const awareDb = createTenantAwareDb({db, tenantId, options});
+      const awareDb = createDimensionAwareDb({db, dimensionId, options});
       const result = awareDb.model('test');
 
       expect(result).toBe(unawareModel);

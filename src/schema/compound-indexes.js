@@ -1,22 +1,22 @@
 /**
- * Apply tenancy awareness to schema level unique indexes
+ * Apply dimension awareness to schema level unique indexes
  * @param {object} schema
- * @param {string} tenantIdKey
+ * @param {string} dimensionIdKey
  */
-const compoundSchemaLevelUniqueIndexes = ({schema, tenantIdKey}) => {
+const compoundSchemaLevelUniqueIndexes = ({schema, dimensionIdKey}) => {
   schema._indexes.forEach(index => {
-    // extend uniqueness of indexes by tenant id field
-    // skip if perserveUniqueKey of the index is set to true
+    // extend uniqueness of indexes by dimension id field
+    // skip if preserveUniqueKey of the index is set to true
     if (index[1].unique === true && index[1].preserveUniqueKey !== true) {
-      const tenantAwareIndex = {
-        [tenantIdKey]: 1,
+      const dimensionAwareIndex = {
+        [dimensionIdKey]: 1,
       };
 
       for (let indexedField in index[0]) {
-        tenantAwareIndex[indexedField] = index[0][indexedField];
+        dimensionAwareIndex[indexedField] = index[0][indexedField];
       }
 
-      index[0] = tenantAwareIndex;
+      index[0] = dimensionAwareIndex;
     }
     // remove preserveUniqueKey field to avoid confusing mongodb 3.x
     delete index[1].preserveUniqueKey;
@@ -46,9 +46,9 @@ const removeFieldLevelIndex = path => {
 /**
  * Apply tenancy awareness to field level unique indexes
  * @param {object} schema
- * @param {string} tenantIdKey
+ * @param {string} dimensionIdKey
  */
-const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
+const compoundFieldLevelUniqueIndexes = ({schema, dimensionIdKey}) => {
   schema.eachPath((key, path) => {
     const pathOptions = path.options;
     const indexOptions = path._index;
@@ -63,10 +63,10 @@ const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
         unique: true,
       };
 
-      // create a new one that includes the tenant id field
+      // create a new one that includes the dimension id field
       schema.index(
         {
-          [tenantIdKey]: 1,
+          [dimensionIdKey]: 1,
           [key]: 1,
         },
         schemaIndexOptions
@@ -77,7 +77,7 @@ const compoundFieldLevelUniqueIndexes = ({schema, tenantIdKey}) => {
   });
 };
 
-module.exports = ({schema, tenantIdKey}) => {
-  compoundSchemaLevelUniqueIndexes({schema, tenantIdKey});
-  compoundFieldLevelUniqueIndexes({schema, tenantIdKey});
+module.exports = ({schema, dimensionIdKey}) => {
+  compoundSchemaLevelUniqueIndexes({schema, dimensionIdKey});
+  compoundFieldLevelUniqueIndexes({schema, dimensionIdKey});
 };

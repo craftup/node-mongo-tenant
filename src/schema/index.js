@@ -1,22 +1,26 @@
-const addTenantIdField = require('./add-tenant-id-field');
+const addDimensionIdField = require('./add-dimension-id-field');
 const compoundIndexes = require('./compound-indexes');
 const sanitizeOptions = require('../options');
 
 /**
- * Tenant middleware plugin
+ * Schema plugin
  * @param {Mongoose.Schema} schema Schema to extend
  * @param {MongoTenantOptions} [options] Options (optional)
  */
 const schema = (schema, options) => {
   const sanitizedOptions = sanitizeOptions(options || {});
-  const {tenantIdKey, tenantIdType, requireTenantId} = sanitizedOptions;
-  addTenantIdField({
+  const {
+    dimensionIdKey,
+    dimensionIdType,
+    requireDimensionId,
+  } = sanitizedOptions;
+  addDimensionIdField({
     schema,
-    key: tenantIdKey,
-    type: tenantIdType,
-    required: requireTenantId,
+    key: dimensionIdKey,
+    type: dimensionIdType,
+    required: requireDimensionId,
   });
-  compoundIndexes({schema, tenantIdKey});
+  compoundIndexes({schema, dimensionIdKey});
 };
 
 module.exports = schema;
