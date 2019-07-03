@@ -1212,7 +1212,9 @@ describe('plugin', () => {
       describe('by dimension level collection provider', () => {
         it('uses different collections', async () => {
           const schema = new Schema({t: Number});
-          schema.plugin(plugin, {collection: 'models:{{tenantId}}'});
+          schema.plugin(plugin, {
+            collection: ({dimensionId}) => `models:${dimensionId}`,
+          });
           const model = mongoose.model('model', schema);
 
           await Promise.all([
