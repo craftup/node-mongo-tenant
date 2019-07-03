@@ -17,6 +17,12 @@ describe('dimension-aware-model', () => {
     const buildBaseModel = () => {
       const base = class {};
       base.db = {};
+      base.collection = {
+        name: 'models',
+        conn: {
+          collection: () => ({}),
+        },
+      };
       return base;
     };
 
@@ -38,7 +44,7 @@ describe('dimension-aware-model', () => {
 
     it('builds discriminator models', () => {
       base.discriminators = {
-        test: class {},
+        test: buildBaseModel(),
       };
       model = dimensionAwareModel({
         base,

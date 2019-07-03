@@ -182,7 +182,7 @@ const renderCollectionName = ({base, dimensionId, options}) => {
   if (typeof collection === 'string') {
     return collection.split(`{{${dimensionIdKey}}}`).join(dimensionId);
   }
-  return base.collection;
+  return base.collection.name;
 };
 
 const adjustCollection = ({base, model, dimensionId, options}) => {
