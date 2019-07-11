@@ -421,6 +421,14 @@ class MongoTenant {
       next();
     });
 
+    this.schema.pre('countDocuments', function(next) {
+      if (this.model.hasTenantContext) {
+        this._conditions[tenantIdKey] = this.model[tenantIdGetter]();
+      }
+
+      next();
+    });
+
     this.schema.pre('find', function(next) {
       if (this.model.hasTenantContext) {
         this._conditions[tenantIdKey] = this.model[tenantIdGetter]();
