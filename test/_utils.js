@@ -23,7 +23,7 @@ function createTestModel(schemaDefinition, options) {
     mongoTenant: void 0,
     withPlugin: true
   }, options);
-  
+
   let schema = new Schema(schemaDefinition, options.schemaOptions);
 
   if (typeof options.applyOnSchema === 'function') {
@@ -37,13 +37,17 @@ function createTestModel(schemaDefinition, options) {
   return mongoose.model(`mongoTenantTestModel${++testModelUnifier}`, schema);
 }
 
+function isMongoose4() {
+  return mongoose.version[0] === '4';
+}
+
 function clearDatabase() {
   mochaMongoose(MONGO_URI);
 
   beforeEach(function(done) {
     if (mongoose.connection.db) return done();
 
-    if (mongoose.version[0] === '4') {
+    if (isMongoose4()) {
       mongoose.connect(MONGO_URI, { useMongoClient: true }, done);
     } else {
       mongoose.connect(MONGO_URI, done);
@@ -51,7 +55,17 @@ function clearDatabase() {
   });
 }
 
+function skipIf(condition, title, test) {
+  if (condition) {
+    return xit(title, test);
+  }
+
+  return it(title, test);
+}
+
 module.exports = {
   clearDatabase: clearDatabase,
-  createTestModel: createTestModel
+  createTestModel: createTestModel,
+  isMongoose4: isMongoose4,
+  skipIf: skipIf,
 };
