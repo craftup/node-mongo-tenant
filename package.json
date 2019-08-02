@@ -44,5 +44,9 @@
   },
   "peerDependencies": {
     "mongoose": ">=4.3.0 <=4.8.0 || >=4.8.3"
+  },
+  "resolutions": {
+    "braces": "2.3.1",
+    "js-yaml": "3.13.1"
   }
 }
