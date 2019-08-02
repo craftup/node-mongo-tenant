@@ -1,11 +1,11 @@
 {
   "name": "mongo-tenant",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "The mongo-tenant is a multi-tenancy plugin for mongoose.",
-  "author": "Craftup Coding Company <moin@craftup.cc>",
+  "author": "RealMQ GmbH <service@realmq.com>",
   "contributors": [
-    "Alrik Zachert <alrik@craftup.cc>",
-    "Henning Panke <henning@craftup.cc>"
+    "Alrik Zachert <alrik@realmq.com>",
+    "Henning Panke <henning@realmq.com>"
   ],
   "keywords": [
     "multi-tenancy",
@@ -44,5 +44,9 @@
   },
   "peerDependencies": {
     "mongoose": ">=4.3.0 <=4.8.0 || >=4.8.3"
+  },
+  "resolutions": {
+    "braces": "2.3.1",
+    "js-yaml": "3.13.1"
   }
 }
