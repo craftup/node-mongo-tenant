@@ -17,7 +17,7 @@ describe('MongoTenant', function() {
     utils.clearDatabase();
 
     it('should add tenant on all discriminators of a model', function (done) {
-      let 
+      let
         TestModel = utils.createTestModel({ kind: String }, {
           schemaOptions : { discriminatorKey: 'kind' }
         });
@@ -33,14 +33,14 @@ describe('MongoTenant', function() {
     });
 
     it('should inherit properties from Model when using discriminator', function (done) {
-      let 
+      let
         TestModel = utils.createTestModel({ kind: String });
 
-      let 
+      let
         DiscriminatorTest = utils.createTestModel({ inherit: Boolean });
 
       DiscriminatorTest = TestModel.discriminator('DiscriminatorTest', DiscriminatorTest.schema);
-      
+
       DiscriminatorTest.byTenant(1).create({ inherit: true, kind: 'test' }, (err, doc) => {
         assert.equal(doc.__t, 'DiscriminatorTest');
         assert.equal(doc.tenantId, 1);
@@ -50,24 +50,24 @@ describe('MongoTenant', function() {
       });
     });
 
-    it('should bind tenant context to Model.countDocuments().', function(done) {
-          let TestModel = utils.createTestModel({});
+    utils.skipIf(utils.isMongoose4(), 'should bind tenant context to Model.countDocuments().', function(done) {
+      let TestModel = utils.createTestModel({});
 
-          TestModel.byTenant(1).create({}, {}, {}, (err) => {
-              assert(!err, 'Expected creation of 3 test entities to work.');
+      TestModel.byTenant(1).create({}, {}, {}, (err) => {
+          assert(!err, 'Expected creation of 3 test entities to work.');
 
-              TestModel.byTenant(1).countDocuments((err, count) => {
+          TestModel.byTenant(1).countDocuments((err, count) => {
+              assert(!err, 'Expected entity counting to work.');
+              assert.equal(count, 3, 'Expected 3 entries for tenant `1`.');
+
+              TestModel.byTenant(2).countDocuments((err, count) => {
                   assert(!err, 'Expected entity counting to work.');
-                  assert.equal(count, 3, 'Expected 3 entries for tenant `1`.');
+                  assert.equal(count, 0, 'Expected 0 entries for tenant `2`.');
 
-                  TestModel.byTenant(2).countDocuments((err, count) => {
-                      assert(!err, 'Expected entity counting to work.');
-                      assert.equal(count, 0, 'Expected 0 entries for tenant `2`.');
-
-                      done();
-                  });
+                  done();
               });
           });
+      });
     });
 
     it('should bind tenant context to Model.count().', function(done) {
@@ -91,26 +91,25 @@ describe('MongoTenant', function() {
       });
     });
 
-      it('should avoid tenant context jumping on Model.countDocuments().', function(done) {
-          let
-              TestModel = utils.createTestModel({});
+    utils.skipIf(utils.isMongoose4(), 'should avoid tenant context jumping on Model.countDocuments().', function(done) {
+        let TestModel = utils.createTestModel({});
 
-          TestModel.byTenant(1).create({}, {}, {}, (err) => {
-              assert(!err, 'Expected creation of 3 test entities to work.');
+        TestModel.byTenant(1).create({}, {}, {}, (err) => {
+            assert(!err, 'Expected creation of 3 test entities to work.');
 
-              TestModel.byTenant(2).countDocuments({tenantId: 1}, (err, count) => {
-                  assert(!err, 'Expected entity counting to work.');
-                  assert.equal(count, 0, 'Expected 0 entries for tenant `2`.');
+            TestModel.byTenant(2).countDocuments({tenantId: 1}, (err, count) => {
+                assert(!err, 'Expected entity counting to work.');
+                assert.equal(count, 0, 'Expected 0 entries for tenant `2`.');
 
-                  TestModel.byTenant(1).countDocuments({tenantId: 2}, (err, count) => {
-                      assert(!err, 'Expected entity counting to work.');
-                      assert.equal(count, 3, 'Expected 3 entries for tenant `1`.');
+                TestModel.byTenant(1).countDocuments({tenantId: 2}, (err, count) => {
+                    assert(!err, 'Expected entity counting to work.');
+                    assert.equal(count, 3, 'Expected 3 entries for tenant `1`.');
 
-                      done();
-                  });
-              });
-          });
-      });
+                    done();
+                });
+            });
+        });
+    });
 
     it('should avoid tenant context jumping on Model.count().', function(done) {
       let
@@ -132,7 +131,8 @@ describe('MongoTenant', function() {
         });
       });
     });
-    it('should not affect Model.count() when not in tenant countDocuments.', function(done) {
+
+    utils.skipIf(utils.isMongoose4(), 'should not affect Model.countDocuments() when not in tenant context.', function(done) {
         let TestModel = utils.createTestModel({});
 
         TestModel.create({tenantId: 1}, {tenantId: 2}, {tenantId: 3}, (err) => {
@@ -563,7 +563,7 @@ describe('MongoTenant', function() {
         }, (err) => {
           assert(!err, 'Expected model update to work.');
 
-          TestModel.byTenant('tenant1').find({}, (err, entities) => { 
+          TestModel.byTenant('tenant1').find({}, (err, entities) => {
             assert(!err, 'Expected entity search by Model.find to work.');
             assert.equal(entities.length, 1, 'Expected to find exactly 1 entity.');
             assert.equal(entities[0].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
