@@ -616,5 +616,89 @@ describe('MongoTenant', function() {
         });
       });
     });
+
+    it('should bind tenant context to Model.updateMany().', function(done) {
+      let TestModel = utils.createTestModel({someField: String});
+
+      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
+        assert(!err, 'Expected creation of 2 test entities to work.');
+
+        TestModel.byTenant('tenant1').updateMany({}, {someField: 'some-value'}, (err) => {
+          assert(!err, 'Expected model updateMany to work.');
+
+          TestModel.byTenant('tenant1').find({}, (err, entities) => {
+            assert(!err, 'Expected entity search by Model.find to work.');
+
+            for (let entity of entities) {
+              assert.equal(entity.someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
+            }
+
+            done();
+          });
+        });
+      });
+    });
+
+    it('should avoid overwriting tenant context on Model.updateMany().', function(done) {
+      let TestModel = utils.createTestModel({someField: String});
+
+      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
+        assert(!err, 'Expected creation of 2 test entities to work.');
+
+        TestModel.byTenant('tenant1').updateMany({}, {
+          tenantId: 'tenant2',
+          someField: 'some-value',
+          $set: { tenantId: "tenant2" }
+        }, (err) => {
+          assert(!err, 'Expected model updateMany to work.');
+
+          TestModel.byTenant('tenant1').find({}, (err, entities) => {
+            assert(!err, 'Expected entity search by Model.find to work.');
+            assert.equal(entities.length, 1, 'Expected to find exactly 1 entity.');
+            assert.equal(entities[0].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
+
+            done();
+          });
+        });
+      });
+    });
+
+    it('should preserve tenant context on Model.updateMany() with truthy overwrite option.', function(done) {
+      let TestModel = utils.createTestModel({someField: String});
+
+      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
+        assert(!err, 'Expected creation of 2 test entities to work.');
+
+        TestModel.byTenant('tenant1').updateMany({}, {tenantId: 'tenant2', someField: 'some-value'}, {overwrite: true}, (err) => {
+          console.log(err);
+          assert(err, 'Expected model updateMany to be disabled by MongoDB server.');
+
+            done();
+        });
+      });
+    });
+
+      it('should not affect Model.updateMany() when not in tenant context.', function(done) {
+          let TestModel = utils.createTestModel({someField: String});
+
+          TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2', someField: 'some-value'}, (err) => {
+              assert(!err, 'Expected creation of 2 test entities to work.');
+
+              TestModel.updateMany({tenantId: 'tenant1'}, {tenantId: 'tenant2', someField: 'some-value'}, (err) => {
+                  assert(!err, 'Expected model updateMany to work.');
+
+                  TestModel.find({}, (err, entities) => {
+                      assert(!err, 'Expected entity search by Model.find to work.');
+                      assert.equal(entities.length, 2, 'Expected to find exactly 2 entity.');
+                      assert.equal(entities[0].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
+                      assert.equal(entities[0].tenantId, 'tenant2', 'Expected updated tenantId to be `tenant2`.');
+                      assert.equal(entities[1].someField, 'some-value', 'Expected updated value of someField to be `some-value`.');
+                      assert.equal(entities[1].tenantId, 'tenant2', 'Expected updated tenantId to be `tenant2`.');
+
+                      done();
+                  });
+              });
+          });
+      });
   });
 });
