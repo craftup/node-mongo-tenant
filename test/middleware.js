@@ -663,20 +663,6 @@ describe('MongoTenant', function() {
       });
     });
 
-    it('should preserve tenant context on Model.updateMany() with truthy overwrite option.', function(done) {
-      let TestModel = utils.createTestModel({someField: String});
-
-      TestModel.create({tenantId: 'tenant1'}, {tenantId: 'tenant2'}, (err) => {
-        assert(!err, 'Expected creation of 2 test entities to work.');
-
-        TestModel.byTenant('tenant1').updateMany({}, {tenantId: 'tenant2', someField: 'some-value'}, {overwrite: true}, (err) => {
-          assert(err, 'Expected model updateMany to be disabled by MongoDB server.');
-
-            done();
-        });
-      });
-    });
-
       it('should not affect Model.updateMany() when not in tenant context.', function(done) {
           let TestModel = utils.createTestModel({someField: String});
 
