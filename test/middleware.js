@@ -670,7 +670,6 @@ describe('MongoTenant', function() {
         assert(!err, 'Expected creation of 2 test entities to work.');
 
         TestModel.byTenant('tenant1').updateMany({}, {tenantId: 'tenant2', someField: 'some-value'}, {overwrite: true}, (err) => {
-          console.log(err);
           assert(err, 'Expected model updateMany to be disabled by MongoDB server.');
 
             done();
