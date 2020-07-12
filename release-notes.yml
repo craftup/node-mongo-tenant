@@ -7,6 +7,14 @@ description: >
   multi-tenancy environment (on premis vs. cloud hosted) is a question of a single line of config.
 
 releases:
+- version: 1.8.0
+  date: 2020-07-12
+  fixed:
+    - Missing tenant context in updateMany ([#61](https://github.com/craftup/node-mongo-tenant/issues/61)).
+    - Audit and update dev dependencies
+    - Exclude unnecessary files from npm package.
+  added:
+    - Extend offical node support to 10, 12 and 14 LTS releases.
 - version: 1.7.0
   date: 2019-08-02
   fixed:
