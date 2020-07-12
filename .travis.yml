@@ -1,5 +1,7 @@
 language: node_js
 node_js:
+  - "14"
+  - "12"
   - "10"
   - "8"
   - "6"
@@ -22,7 +24,7 @@ jobs:
   include:
   - stage: deploy
     if: env(MONGOOSE_VERSION) = 5
-    node_js: "8"
+    node_js: "14"
     script:
       - yarn test-and-cover
       - yarn coveralls
