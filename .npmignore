@@ -1,3 +1,9 @@
 .travis.yml
 coverage
 test
+.nyc_output
+.idea
+.jshint
+.jshintignore
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
