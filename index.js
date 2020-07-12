@@ -478,6 +478,14 @@ class MongoTenant {
       next();
     });
 
+    this.schema.pre('updateMany', function(next) {
+      if (this.model.hasTenantContext) {
+        me._guardUpdateQuery(this);
+      }
+
+      next();
+    });
+
     return this;
   }
 
