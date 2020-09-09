@@ -170,6 +170,8 @@ class MongoTenant {
 
           index[0] = tenantAwareIndex;
         }
+        // Removes the possible preserveUniqueKey flag, that generates an validation error on MongoDB
+        delete index[1].preserveUniqueKey
       });
 
       // apply tenancy awareness to field level unique indexes
