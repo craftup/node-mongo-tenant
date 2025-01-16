@@ -39,7 +39,7 @@
     "mocha": "^5.2.0",
     "mocha-mongoose": "^1.2.0",
     "mongodb": "^2.2.36",
-    "mongoose": "^5.9.23",
+    "mongoose": "^8.9.5",
     "nyc": "^11.9.0"
   },
   "peerDependencies": {
